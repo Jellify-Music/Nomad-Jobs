@@ -10,6 +10,41 @@ inline HCL comments.
 
 Newest entries first, grouped by job.
 
+## jellyfin-music-bot
+
+### 2026-09-30
+
+- **Added.** Runs [`manuel-rw/jellyfin-discord-music-bot`](https://github.com/manuel-rw/jellyfin-discord-music-bot)
+  (`ghcr.io/manuel-rw/jellyfin-discord-music-bot:latest`) to broadcast the
+  Jellify Jellyfin library into Discord voice channels, specifically for
+  streaming into `The Music Hall` (channel ID `1437161572396044288`) on the
+  Jellify Discord server (guild ID `1351285328400351344`). Constrained to
+  `amd64` (the Ubuntu jellify nodes), by request - it doesn't need
+  galileo/hopper's arm64 capacity, unlike `jerry`.
+  - This bot has no env var for auto-joining a fixed voice channel or guild -
+    it's single-guild only, and joins whichever voice channel the command
+    issuer is in when they run `/summon`. So after each deploy/restart,
+    someone has to sit in The Music Hall and run `/summon` (then `/play`,
+    `/playliked`, `/random`, etc.) to actually start playback - it isn't
+    zero-touch. `LOCKED_CHANNEL_IDS` (unset here) would restrict which text
+    channel(s) accept bot commands, not which voice channel it joins - left
+    unset for now.
+  - Needs a dedicated Jellyfin account for the bot (not the admin account,
+    per upstream's own advice) - its credentials plus the Discord bot token
+    must be populated in Consul KV at `jellify/jellyfin-music-bot/
+    DISCORD_CLIENT_TOKEN`, `.../JELLYFIN_AUTHENTICATION_USERNAME`, and
+    `.../JELLYFIN_AUTHENTICATION_PASSWORD` before the first deploy - same
+    pattern as `jerry`'s Discord token. The Discord bot application itself
+    (token, invite with voice-connect/speak permissions) still has to be
+    created by hand in the Discord Developer Portal first.
+  - `JELLYFIN_SERVER_ADDRESS` points at the public
+    `https://jellyfin.jellify.app` Traefik hostname, not a LAN address -
+    Jellyfin itself runs on `cassiopeia` in the separate `cosmonautical`
+    datacenter (see the legacy `nomad-jobs` repo's `jellyfin.nomad.hcl`), not
+    in `jellify` alongside this bot.
+  - A genuinely new job, nothing registered yet - skips the `terraform
+    import` step other jobs in this repo needed.
+
 ## minecraft
 
 ### 2026-09-30

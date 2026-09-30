@@ -23,8 +23,10 @@ at which point its `.nomad.hcl` file's canonical copy lives here.
 │   └── jerry.nomad.hcl
 ├── valheim/
 │   └── valheim.nomad.hcl
-└── actions-runner/
-    └── actions-runner.nomad.hcl
+├── actions-runner/
+│   └── actions-runner.nomad.hcl
+└── jellyfin-music-bot/
+    └── jellyfin-music-bot.nomad.hcl
 ```
 
 This is a single root module — every job is one `nomad_job` resource in the
