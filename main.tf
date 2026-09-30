@@ -9,3 +9,7 @@ resource "nomad_job" "jellify" {
 resource "nomad_job" "valheim" {
   jobspec = file("${path.module}/valheim/valheim.nomad.hcl")
 }
+
+resource "nomad_job" "actions-runner" {
+  jobspec = file("${path.module}/actions-runner/actions-runner.nomad.hcl")
+}

@@ -258,3 +258,33 @@ Newest entries first, grouped by job.
 No history recorded here yet — `jerry.nomad.hcl` is small and has had no
 notable operational incidents so far. Future changes to it should still get
 an entry here rather than inline comments, per the convention above.
+
+## actions-runner
+
+### 2026-09-30
+
+- **Brought under Terraform**, migrated from the `Nomadintosh` Ansible
+  collection's `github_actions` role (a Jinja2 `.j2` template rendered to
+  `actions-runner.nomad.hcl` on the host and registered via `nomad job run`),
+  which was removed 2026-09-05 once job deployment moved out of Ansible.
+  `galileo.jellify.app`'s inventory entry still shows `gh_actions.enabled:
+  true` in that repo (`hopper.jellify.app` runs it too, just not reflected
+  there) - this file is the same job, just brought under Terraform rather
+  than a fresh spec. `count`, `resources`, and the env block were taken from
+  the job as actually registered (`GET /v1/job/actions-runner` on
+  `cassiopeia`, confirmed running on both `galileo`/`hopper`), not from the
+  removed Ansible role's defaults, which had drifted (the role's own
+  default was `memory = 10240`; the live job has been running at `cpu = 16`,
+  `memory = 8192` for a while, presumably tuned by hand after the role was
+  removed) - no restart policy is set either, matching the live job, which
+  never had one and just runs on Nomad's own service-job default
+  (`attempts = 2`, `interval = "30m"`, `delay = "15s"`, `mode = "fail"`).
+- **Added an explicit `arm64`/`darwin` constraint**, which the live job
+  doesn't have (`Constraints: null` in the API response) - it only ever
+  landed on `galileo`/`hopper` because `gh_actions` was enabled by hand on
+  exactly those two hosts, not because of any scheduler-enforced rule. Made
+  explicit so the job can't drift onto one of the amd64 Ubuntu jellify
+  nodes (kepler/fibonacci/euler/dijkstra, added for valheim/minecraft) if
+  the cluster's node pool changes - the runner needs to build for
+  Android/iOS, which is why it has to be this specific arch/OS combination
+  and not just "any jellify node."

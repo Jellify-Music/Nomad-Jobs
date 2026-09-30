@@ -21,8 +21,10 @@ at which point its `.nomad.hcl` file's canonical copy lives here.
 │   └── minecraft.nomad.hcl
 ├── jerry/                 the jellify Discord bot job
 │   └── jerry.nomad.hcl
-└── valheim/
-    └── valheim.nomad.hcl
+├── valheim/
+│   └── valheim.nomad.hcl
+└── actions-runner/
+    └── actions-runner.nomad.hcl
 ```
 
 This is a single root module — every job is one `nomad_job` resource in the
@@ -85,7 +87,9 @@ there's no token to configure.
 
 `minecraft` and `valheim` were both already registered and running (real
 players, a real world save) before this repo existed — applying either's
-config for the first time must not re-trigger a deploy. Import the existing
+config for the first time must not re-trigger a deploy. `actions-runner` is
+the same situation (already running on `galileo`/`hopper`, previously
+deployed by the now-removed `Nomadintosh` Ansible role). Import the existing
 job into state instead of creating it fresh, then confirm a plan is a true
 no-op before ever running apply:
 
@@ -93,15 +97,20 @@ no-op before ever running apply:
 terraform init
 terraform import nomad_job.minecraft minecraft
 terraform import nomad_job.valheim valheim
+terraform import nomad_job.actions-runner actions-runner
 terraform plan   # must show "No changes" - if it doesn't, stop and diff by hand first
 ```
 
 Because this is a single shared state, that `plan` will also show whatever
 every other job in `main.tf` is doing (a create, for anything not yet
-imported/applied) — only the `minecraft`/`valheim` portions need to read as a
-no-op. `valheim`'s CPU/memory were bumped as part of moving it here (see its
-job file), so its first plan after import is expected to show that resource
-change, not a true no-op — everything else about it should still match.
+imported/applied) — only the `minecraft`/`valheim`/`actions-runner` portions
+need to read as a no-op. `valheim`'s CPU/memory were bumped as part of moving
+it here (see its job file), so its first plan after import is expected to
+show that resource change, not a true no-op — everything else about it
+should still match. `actions-runner`'s first plan after import is expected to
+show its new `arm64`/`darwin` constraint being added the same way — an
+in-place update on both existing allocations, not a destructive one
+(confirmed via `/v1/job/actions-runner/plan` before this was written).
 
 Only once `plan` looks right should Semaphore (or a human) ever run `apply`.
 A genuinely new job with nothing registered yet (e.g. `jerry`) skips the
