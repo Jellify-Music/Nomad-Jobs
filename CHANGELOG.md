@@ -75,12 +75,28 @@ Newest entries first, grouped by job.
   `raw_exec` itself was kept (not switched to the `java` driver) even
   though the original macOS-only bug that forced `raw_exec` doesn't apply
   on Linux — it's a proven working setup already, no reason to swap it out.
-- Not independently confirmed: whether a `raw_exec` task actually inherits
-  root on these Linux nodes the way the Nomad agent process itself runs as
-  root. `/opt/nomad` is `root:root` on all four hosts (confirmed via SSH),
-  and `fetch-jdk` needs to write there — inferred safe from the agent's own
-  user and the directory already existing before this job targeted these
-  hosts, not from an actual task-level check.
+- **Confirmed, then fixed: the job really was running as root.** Live alloc
+  logs on `euler.jellify.app` showed Paper's own
+  `YOU ARE RUNNING THIS SERVER AS AN ADMINISTRATIVE OR ROOT USER` warning —
+  `raw_exec` tasks with no `user` set inherit the Nomad agent's own user, and
+  that agent's systemd unit (as shipped by HashiCorp's apt package) runs as
+  root by default for the client role. Fixed at the agent level, not here:
+  `nomaduntu` (the Ansible collection managing these hosts) now overrides
+  that with a systemd drop-in so the agent — and everything it runs via
+  `raw_exec`, this job included — runs as a dedicated non-root `nomad`
+  system user instead, matching how `consul` and the macOS/Nomadintosh
+  agents already run non-root. See that repo's `CHANGELOG.md` (1.3.0) and
+  `roles/nomad/README.md` for the actual change and its tradeoffs. No edit
+  needed here — this job never set `user` itself, so it picks up the fix
+  automatically once that playbook is deployed.
+- **`/mnt/jellify/minecraft` re-permissioned ahead of the deploy.** `chgrp -R
+  900` + `chmod -R g+rwX`, done directly (not through either repo) since it's
+  live NFS data, not host config or a job spec — gid 900 is what `nomaduntu`
+  will pin the new `nomad` service user to (see above); numeric-gid
+  ownership works even before that group name exists on the hosts
+  themselves, so this didn't need to wait for the `nomaduntu` deploy. Once
+  that deploy runs, the `nomad` user lands in the same gid and can write
+  here immediately - nothing further needed on this directory.
 - Established this CHANGELOG.md as where this kind of history goes from now
   on, instead of long inline `.nomad.hcl` comments.
 
