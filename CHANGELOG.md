@@ -14,6 +14,25 @@ Newest entries first, grouped by job.
 
 ### 2026-09-30
 
+- **`start.sh`'s `cleanup()` trap now preserves the real exit code**, instead
+  of always reporting 0. Root-caused a live incident: a Nomadable/Ansible run
+  against `euler.jellify.app` (bumping the `nomadintosh`/`nomaduntu`
+  collection pin) tore down the task's wrapper process without going through
+  its own SIGTERM handling, orphaning the backgrounded `java` process — which
+  kept `world/session.lock` held. Every subsequent restart's `java` then
+  failed instantly with `DirectoryLock: already locked`, but Nomad's UI and
+  API only ever showed `Terminated Exit Code: 0`, because `cleanup()`'s last
+  line was `rsync ... || true` — under a `trap ... EXIT` with no explicit
+  `exit`, the shell reports whatever the trap's own last command returned,
+  not the status that actually triggered the trap. Masked the real failure
+  through all 5 restart attempts before the job dropped into its 30m backoff.
+  Fixed by capturing `rc=$?` as `cleanup()`'s first statement and calling
+  `exit "$rc"` at the end, so a crashed `java` now surfaces as a real
+  non-zero exit instead of a silent, misleading success. (The orphan itself
+  was resolved by hand — `kill` the stray PID on the host, then stop the
+  stuck allocation via the Nomad API so a fresh one gets scheduled with a
+  reset restart counter, since the client refuses to restart a task that's
+  already in backoff.)
 - **Removed the self-hosted status page (`minecraft-status` task).** It
   crash-looped the entire allocation: its CSS was embedded in a Python
   f-string using doubled `{{ }}` to escape literal braces, but the file is

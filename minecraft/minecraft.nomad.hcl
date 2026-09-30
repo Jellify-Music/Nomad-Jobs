@@ -411,10 +411,12 @@ job "minecraft" {
         sync_pid=$!
 
         cleanup() {
+          rc=$?
           kill "$sync_pid" 2>/dev/null || true
           kill "$mc_pid" 2>/dev/null || true
           wait "$mc_pid" 2>/dev/null || true
           /usr/bin/rsync -a "$local_dir/" /mnt/jellify/minecraft/ 2>/dev/null || true
+          exit "$rc"
         }
         trap cleanup EXIT INT TERM
 
