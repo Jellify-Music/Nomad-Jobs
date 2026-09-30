@@ -13,3 +13,7 @@ resource "nomad_job" "valheim" {
 resource "nomad_job" "actions-runner" {
   jobspec = file("${path.module}/actions-runner/actions-runner.nomad.hcl")
 }
+
+resource "nomad_job" "bobby" {
+  jobspec = file("${path.module}/bobby/bobby.nomad.hcl")
+}

@@ -11,6 +11,16 @@ separate repo and are deployed by hand against the cluster's HTTP API. A job
 moves out of that repo and into this one when it's brought under Terraform,
 at which point its `.nomad.hcl` file's canonical copy lives here.
 
+## Jobs
+
+- [`minecraft`](minecraft)
+- [`jerry`](jerry) — job ID is `jellify`, directory/README named `jerry`
+- [`valheim`](valheim)
+- [`actions-runner`](actions-runner)
+- [`bobby`](bobby) — Discord bots in this repo are named after Grateful Dead
+  members; see [`jerry/README.md`](jerry/README.md#naming) for the
+  convention
+
 ## Structure
 
 ```
@@ -23,8 +33,10 @@ at which point its `.nomad.hcl` file's canonical copy lives here.
 │   └── jerry.nomad.hcl
 ├── valheim/
 │   └── valheim.nomad.hcl
-└── actions-runner/
-    └── actions-runner.nomad.hcl
+├── actions-runner/
+│   └── actions-runner.nomad.hcl
+└── bobby/                  the Jellyfin-to-Discord voice bot
+    └── bobby.nomad.hcl
 ```
 
 This is a single root module — every job is one `nomad_job` resource in the
@@ -83,7 +95,7 @@ built-in `terraform` manager already scans any `*.tf` file for
 `required_providers` blocks:
 
 - **Docker images** referenced by `.nomad.hcl` job specs (`jerry`, `valheim`,
-  `jellyfin-music-bot` once merged). These are all pinned to the `:latest`
+  `bobby` once merged). These are all pinned to the `:latest`
   tag, which has nothing for Renovate to version-bump on its own, so
   `pinDigests` makes it pin each one to the digest `:latest` currently
   resolves to (`image:latest@sha256:...`) and open a PR each time that

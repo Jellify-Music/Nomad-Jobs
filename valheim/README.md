@@ -63,6 +63,12 @@ tradeoffs that don't apply the same way here (Valheim doesn't have the same
 autosave-thread stall issue that forced minecraft onto a local-disk hot
 copy).
 
+## Consul KV keys
+
+| Key | Used for |
+|---|---|
+| `valheim/SERVER_PASSWORD` | Server join password |
+
 ## Adding or dropping a mod
 
 1. Confirm it's bare-BepInEx (or, if it needs Jotunn/ServerSync, confirm

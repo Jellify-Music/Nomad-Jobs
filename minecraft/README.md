@@ -67,6 +67,12 @@ Both are dropped in as `.zip` files directly under `world/datapacks/`
 involved. Each was confirmed compatible with the server's pinned Minecraft
 version via Modrinth's API before being pinned here.
 
+## Consul KV keys
+
+| Key | Used for |
+|---|---|
+| `minecraft/RCON_PASSWORD` | RCON console auth |
+
 ## Adding or upgrading a plugin/datapack
 
 1. Confirm compatibility with the server's pinned `paper_version` (Modrinth

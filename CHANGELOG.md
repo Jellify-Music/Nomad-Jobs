@@ -10,6 +10,55 @@ inline HCL comments.
 
 Newest entries first, grouped by job.
 
+## bobby
+
+### 2026-09-30
+
+- **Renamed from `jellyfin-music-bot` to `bobby`** (job ID, directory, and
+  Consul KV prefix all moved from `jellyfin-music-bot`/`jellify/jellyfin-music-bot/*`
+  to `bobby`/`jellify/bobby/*`) before its first deploy - no import/migration
+  needed since nothing was registered yet. Considered reusing `jerry`'s
+  Discord token instead of provisioning a new bot application; rejected -
+  Discord tokens are one-session-per-application, so both jobs running under
+  the same token would fight over the gateway connection, and `jerry`'s
+  application was never granted the voice-connect/speak permissions or
+  Voice States intent this bot needs. Reusing it would also make `/summon`
+  etc. show up under `jerry`'s bot identity in Discord, not a distinct bot.
+  This established the naming convention for Discord bots in this repo:
+  named after Grateful Dead members matching their role - `jerry` (Jerry
+  Garcia, chat bot) and `bobby` (Bobby Weir, voice bot) - see
+  [`jerry/README.md`](../jerry/README.md#naming).
+- **Added.** Runs [`manuel-rw/jellyfin-discord-music-bot`](https://github.com/manuel-rw/jellyfin-discord-music-bot)
+  (`ghcr.io/manuel-rw/jellyfin-discord-music-bot:latest`) to broadcast the
+  Jellify Jellyfin library into Discord voice channels, specifically for
+  streaming into `The Music Hall` (channel ID `1437161572396044288`) on the
+  Jellify Discord server (guild ID `1351285328400351344`). Constrained to
+  `amd64` (the Ubuntu jellify nodes), by request - it doesn't need
+  galileo/hopper's arm64 capacity, unlike `jerry`.
+  - This bot has no env var for auto-joining a fixed voice channel or guild -
+    it's single-guild only, and joins whichever voice channel the command
+    issuer is in when they run `/summon`. So after each deploy/restart,
+    someone has to sit in The Music Hall and run `/summon` (then `/play`,
+    `/playliked`, `/random`, etc.) to actually start playback - it isn't
+    zero-touch. `LOCKED_CHANNEL_IDS` (unset here) would restrict which text
+    channel(s) accept bot commands, not which voice channel it joins - left
+    unset for now.
+  - Needs a dedicated Jellyfin account for the bot (not the admin account,
+    per upstream's own advice) - its credentials plus the Discord bot token
+    must be populated in Consul KV at `jellify/bobby/DISCORD_CLIENT_TOKEN`,
+    `.../JELLYFIN_AUTHENTICATION_USERNAME`, and
+    `.../JELLYFIN_AUTHENTICATION_PASSWORD` before the first deploy - same
+    pattern as `jerry`'s Discord token. The Discord bot application itself
+    (token, invite with voice-connect/speak permissions) still has to be
+    created by hand in the Discord Developer Portal first.
+  - `JELLYFIN_SERVER_ADDRESS` points at the public
+    `https://jellyfin.jellify.app` Traefik hostname, not a LAN address -
+    Jellyfin itself runs on `cassiopeia` in the separate `cosmonautical`
+    datacenter (see the legacy `nomad-jobs` repo's `jellyfin.nomad.hcl`), not
+    in `jellify` alongside this bot.
+  - A genuinely new job, nothing registered yet - skips the `terraform
+    import` step other jobs in this repo needed.
+
 ## Repo tooling
 
 ### 2026-09-30
@@ -18,7 +67,7 @@ Newest entries first, grouped by job.
   updates... so I can just merge an auto generated PR to bump changes").
   Covers the two things that are both (a) actually tracked by a version or
   digest and (b) require no bespoke verification to bump: the `:latest`
-  Docker images in `jerry`/`valheim`/`jellyfin-music-bot` (via `pinDigests`
+  Docker images in `jerry`/`valheim`/`bobby` (via `pinDigests`
   and a custom regex manager, since a bare `image = "..."` line in a
   `.nomad.hcl` file isn't a format Renovate recognizes natively — its
   `terraform`/Dockerfile managers don't scan Nomad job specs), and the

@@ -32,6 +32,10 @@ macOS runner for Android/iOS builds. Runs on both `galileo` and `hopper`
   removed Ansible role's own defaults, which had drifted (the role
   defaulted to `memory = 10240`).
 
+## Consul KV keys
+
+None — no `template`/`{{ key ... }}` references in this job's spec.
+
 ## History
 
 Brought under Terraform 2026-09-30, replacing the `Nomadintosh` Ansible
