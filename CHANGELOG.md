@@ -99,6 +99,20 @@ Newest entries first, grouped by job.
   here immediately - nothing further needed on this directory.
 - Established this CHANGELOG.md as where this kind of history goes from now
   on, instead of long inline `.nomad.hcl` comments.
+- **AutoTreeChop 1.7.5 added**, pinned and checksum-verified: fells an entire
+  tree from one log break and auto-replants the correct sapling, so chopped
+  forest actually regrows instead of leaving permanent stumps. Requested
+  directly ("auto regrowth plugin ... trees and other vegetation
+  automatically regrow"). Confirmed via Modrinth's API to declare support up
+  to game version 26.3, covering the pinned 26.2 build — same margin
+  BlueMap's pin has. Chosen over TimberReplant, TreeFalls, RealisticGrowth,
+  EzTree, TreeForce, and Auto Crop Replant: most of those hadn't published a
+  release declaring 26.2 support yet, and TimberReplant splits an unrelated
+  Fabric/Forge mod line and a separate, less mature Bukkit/Paper plugin line
+  across the same Modrinth project page, making it easy to pin the wrong
+  file. No hard dependencies (protection-plugin/CoreProtect/PlaceholderAPI
+  integration is optional) — doesn't need Vault or any other plugin already
+  running here.
 
 ### 2026-09-29
 

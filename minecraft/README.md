@@ -18,6 +18,7 @@ summarizes the current state.
 | [Chunky](https://modrinth.com/plugin/chunky) | 1.5.3 | World pre-generation, so terrain doesn't generate live under players walking near the edge of explored land. |
 | [AuraSkills](https://modrinth.com/plugin/auraskills) | 2.4.0 | RPG skills/leveling. |
 | [BlueMap](https://modrinth.com/plugin/bluemap) | 5.28 (Paper build) | Live web map of the world, served at `minecraft.jellify.app`. |
+| [AutoTreeChop](https://modrinth.com/plugin/autotreechop) | 1.7.5 | Fells an entire tree from one log break and auto-replants the correct sapling, so chopped forest actually grows back instead of leaving permanent stumps/clear-cuts. |
 
 Geyser/Floodgate track latest on every restart; everything else is pinned
 (exact version + sha1, fetched in `fetch-pinned-plugins`).
@@ -42,6 +43,17 @@ Geyser/Floodgate track latest on every restart; everything else is pinned
   `template` block mangling embedded CSS crash-looped the whole allocation).
   Not worth re-fixing and maintaining a hand-rolled Java SLP / Bedrock
   RakNet implementation for a cosmetic feature.
+- **AutoTreeChop over alternatives considered** (TimberReplant, TreeFalls,
+  RealisticGrowth, EzTree, TreeForce, Auto Crop Replant): most either hadn't
+  published a release declaring support for the server's pinned game
+  version (26.2) at time of writing, or (TimberReplant) share one Modrinth
+  project page across an unrelated Fabric/Forge mod line and a separate,
+  less mature Bukkit/Paper plugin line, which made picking the right file
+  more error-prone than a dedicated single-purpose project. AutoTreeChop is
+  Paper/Folia-only, has no hard dependencies (protection-plugin/CoreProtect/
+  PlaceholderAPI support is optional), and its current release declares
+  support up to 26.3 — the same forward-compatibility margin BlueMap's pin
+  has over the pinned 26.2 build.
 
 ## World datapacks
 
