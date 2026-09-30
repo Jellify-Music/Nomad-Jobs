@@ -6,7 +6,7 @@ job "jellify" {
     count = 1
 
     task "jellify-discord-bot" {
-      driver = "container"
+      driver = "docker"
       # Inject environment variables into the container.
       env {
         OPENAI_MODEL="gemma4:e2b"
@@ -31,8 +31,8 @@ EOF
       }
 
       resources {
-        cpu    = 1   # MHz
-        memory = 200   # MiB
+        cpu    = 500   # MHz
+        memory = 256   # MiB
       }
     }
   }
