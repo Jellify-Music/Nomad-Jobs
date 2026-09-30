@@ -96,6 +96,22 @@ jellify hosts — check the target host's actual driver fingerprint
 (`GET /v1/nodes` → node's `Drivers` map) rather than trusting the Nomadable
 inventory flags, per the caveat above.
 
+**CPU sizing also isn't uniform across the two host types, for the same
+reason.** `galileo`/`hopper` (macOS/arm64) fingerprint CPU in the
+single/double digits, not the usual Nomad MHz-scale totals — same quirk
+documented in full in `~/Workspace/nomad-jobs/.agents/AGENTS.md`'s "macOS
+CPU fingerprint" section (cosmonautical is all-macOS, so it has the fuller
+writeup and the incident that exposed it). Evidence from this repo:
+`actions-runner` (constrained to `darwin`/`arm64`, i.e. `galileo`) uses
+`cpu = 16`, while `amd64`-constrained jobs on the Ubuntu nodes use
+normal-scale values (`minecraft`'s main task and `valheim` both use
+`cpu = 10000`). Don't copy a `cpu` value from one job to a new one without
+checking which host type it's actually constrained to — `bobby`'s
+`cpu = 200` and `jerry`'s `cpu = 100` are genuinely small MHz values on a
+normal-scale Ubuntu host, not examples of this quirk, and sizing a
+`galileo`/`hopper`-bound job the same way would ask for far more headroom
+than those hosts can actually fingerprint.
+
 ## Gotchas that carry over from the macOS side of the fleet
 
 `galileo`/`hopper` are macOS hosts, same as all of cosmonautical, so the
@@ -167,6 +183,31 @@ new job's `template` block.
 
 Each job's own README has a "Consul KV keys" table listing exactly what it
 needs — check there rather than grepping the `.hcl` by hand.
+
+## Non-secret config (Nomad Variables)
+
+**Convention started 2026-09-30, on cosmonautical's `romm` job — not yet
+used by anything in this repo.** Split by sensitivity, not just "is it
+config": secrets stay in Consul KV as above; non-sensitive but
+deployment-specific values (URLs, hostnames, labels — anything a redeploy
+to a different environment/domain would need to change) go in a [Nomad
+Variable](https://developer.hashicorp.com/nomad/docs/job-declare/nomad-variables)
+instead of being hardcoded into the `.nomad.hcl` file, so the spec stays
+reusable. Structural identifiers a job owns (DB name/user, a task's own
+OIDC client ID, port labels) stay as plain HCL literals either way — this
+is about environment-shaped config specifically, not "anything that isn't
+a password."
+
+Path convention: `nomad/jobs/<job-id>`. Read in a `template` block with
+`{{ with nomadVar "nomad/jobs/<job-id>" }}{{ .KEY }}{{ end }}` — same
+consul-template engine as `{{ key "..." }}`, different backend. Keep these
+in their own `template` block (`destination = "local/..."`, not
+`secrets/...`) rather than merging into the same template as Consul KV
+secrets. No `nomad` CLI on any host, so populate by hand via the HTTP API:
+`curl -X PUT 127.0.0.1:4646/v1/var/nomad/jobs/<job-id> -d '{"Items": {"KEY": "value"}}'`.
+Full writeup and the first real example:
+`~/Workspace/Cosmonautical/Nomad-Jobs/.agents/AGENTS.md`'s own copy of this
+section, and `Cosmonautical/Nomad-Jobs/romm`'s job spec/README.
 
 ## Adding a new job — checklist
 
