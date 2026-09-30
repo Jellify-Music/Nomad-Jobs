@@ -14,6 +14,34 @@ Newest entries first, grouped by job.
 
 ### 2026-09-30
 
+- **Fixed: bot joined voice but never actually played anything, stuck
+  reconnecting its Jellyfin WebSocket forever.** Reported as "bobby can't
+  join my voice channel" - misleading, since `/summon`/`/play` did put it in
+  the channel; the real failure was `[JellyfinWebSocketService] WebSocket
+  error: Unexpected server response: 403` on a 5s reconnect loop, confirmed
+  against Jellyfin's own log on `cassiopeia`
+  (`Error processing request: "Token is required". URL "GET" "/socket"`,
+  paired with `User "bobby" ... stopped playback ... at "0"ms` - REST auth
+  succeeded, the `/socket` handshake didn't). Root cause: Jellyfin here runs
+  **12.1.0**, but the image was pinned to `:latest` -> the `1.5.0` release
+  (built 2026-08-26), which predates a jellyfin-sdk compatibility fix the
+  upstream maintainer merged 2026-09-13
+  ([`manuel-rw/jellyfin-discord-music-bot#618`](https://github.com/manuel-rw/jellyfin-discord-music-bot/issues/618),
+  merged as #621) specifically for Jellyfin 12's websocket auth. No tagged
+  release has shipped with that fix as of this writing - only the rolling
+  `:dev` tag (confirmed built 2026-09-13T18:38:35Z, right after the fix
+  landed) has it, and the upstream issue thread itself fizzled out without a
+  maintainer confirmation that `:dev` fully resolves it end-to-end for
+  everyone. Chose to pin the exact `:dev` digest
+  (`sha256:c429544911995cff5d5d0bc88c5f89ef96305dde3abb1638bc7cdeb08735866b`)
+  rather than float on `:dev` or wait indefinitely for a stable release -
+  same `image:tag@sha256:digest` shape Renovate's existing regex manager for
+  this repo already parses (`renovate.json`, `customManagers`), so a later
+  digest change on `:dev` still surfaces as a normal Renovate PR rather than
+  silently drifting; needs a human to actually merge it though, since
+  `:dev` is an unstable branch build, not a release - don't auto-merge a
+  bobby image bump the way `jerry`/`valheim`'s `:latest` bumps might be
+  treated.
 - **Fixed: bot couldn't authenticate to Jellyfin, so it never found music or
   joined voice.** Root cause - the `secrets/.env` template's values were
   unquoted, and Nomad's `template { env = true }` line parser

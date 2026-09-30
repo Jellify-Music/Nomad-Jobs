@@ -4,3 +4,5 @@
 *.tfplan
 crash.log
 crash.*.log
+__pycache__/
+.pytest_cache/

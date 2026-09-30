@@ -37,7 +37,8 @@ EOF
       }
 
       config {
-        image = "ghcr.io/manuel-rw/jellyfin-discord-music-bot:latest"
+        # Pinned to :dev, not :latest/a tagged release - see CHANGELOG.md.
+        image = "ghcr.io/manuel-rw/jellyfin-discord-music-bot:dev@sha256:c429544911995cff5d5d0bc88c5f89ef96305dde3abb1638bc7cdeb08735866b"
       }
 
       resources {

@@ -87,6 +87,18 @@ separate hand-deployed `nomad-jobs` repo's convention (heavy inline comments,
 no changelog) - that repo isn't changing retroactively, but anything brought
 under Terraform here follows this convention going forward.
 
+## Testing
+
+[`tests/`](tests) validates every job spec and the Terraform config itself -
+`terraform fmt`/`validate`, `nomad job validate` against a throwaway local
+dev agent, and the repo's own written conventions (every job has a README,
+is linked from this file, has a matching `main.tf` resource, and has no
+hardcoded secret). Runs locally with `pytest tests/`, and in CI on every
+push/PR via [`.github/workflows/validate.yml`](.github/workflows/validate.yml)
+- see `tests/README.md` for detail. This is separate from, and faster than,
+Semaphore's `terraform plan`: it catches spec errors before a PR is even
+opened, but doesn't talk to the real cluster or Consul state.
+
 ## Dependency updates (Renovate)
 
 [`renovate.json`](renovate.json) tracks two things repo-wide and opens a PR

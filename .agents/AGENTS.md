@@ -175,10 +175,11 @@ needs — check there rather than grepping the `.hcl` by hand.
 2. `<job>/README.md` — what it runs, notable choices, a "Consul KV keys"
    table (or an explicit "None" line if it needs none).
 3. **Add it to the linked job list at the top of `README.md`'s "Jobs"
-   section.** Easy to forget since nothing enforces it — the list is only
-   useful if it's actually complete, so treat a new job dir without a
-   corresponding list entry as an incomplete PR, same as one missing a
-   README.
+   section.** The list is only useful if it's actually complete, so treat a
+   new job dir without a corresponding list entry as an incomplete PR, same
+   as one missing a README. `tests/test_conventions.py` now enforces this
+   (and the README/`main.tf` requirements below) in CI — see the top-level
+   README's "Testing" section.
 4. If it's already running (migrated/brought under Terraform), add its
    `terraform import` line to `README.md`'s import command list.
 
