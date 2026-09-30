@@ -19,8 +19,10 @@ at which point its `.nomad.hcl` file's canonical copy lives here.
 ├── versions.tf
 ├── minecraft/
 │   └── minecraft.nomad.hcl
-└── jerry/                 the jellify Discord bot job
-    └── jerry.nomad.hcl
+├── jerry/                 the jellify Discord bot job
+│   └── jerry.nomad.hcl
+└── valheim/
+    └── valheim.nomad.hcl
 ```
 
 This is a single root module — every job is one `nomad_job` resource in the
@@ -68,20 +70,25 @@ there's no token to configure.
 
 ## Bringing an already-running job under Terraform
 
-`minecraft` was already registered and serving real players before this repo
-existed — applying its config for the first time must not re-trigger a
-deploy. Import the existing job into state instead of creating it fresh, then
-confirm a plan is a true no-op before ever running apply:
+`minecraft` and `valheim` were both already registered and running (real
+players, a real world save) before this repo existed — applying either's
+config for the first time must not re-trigger a deploy. Import the existing
+job into state instead of creating it fresh, then confirm a plan is a true
+no-op before ever running apply:
 
 ```sh
 terraform init
 terraform import nomad_job.minecraft minecraft
+terraform import nomad_job.valheim valheim
 terraform plan   # must show "No changes" - if it doesn't, stop and diff by hand first
 ```
 
 Because this is a single shared state, that `plan` will also show whatever
 every other job in `main.tf` is doing (a create, for anything not yet
-imported/applied) — only the `minecraft` portion needs to read as a no-op.
+imported/applied) — only the `minecraft`/`valheim` portions need to read as a
+no-op. `valheim`'s CPU/memory were bumped as part of moving it here (see its
+job file), so its first plan after import is expected to show that resource
+change, not a true no-op — everything else about it should still match.
 
 Only once `plan` looks right should Semaphore (or a human) ever run `apply`.
 A genuinely new job with nothing registered yet (e.g. `jerry`) skips the
