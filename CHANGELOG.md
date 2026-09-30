@@ -35,6 +35,20 @@ Newest entries first, grouped by job.
   compatibility-with-pinned-game-version check and checksum verification
   done for each one so far. See `README.md`'s "Dependency updates (Renovate)"
   section.
+- **Added version-number tracking for the 8 Modrinth-pinned plugins/datapacks**
+  above, requested directly ("extract version numbers from the minecraft
+  mods so that they could be tracked"). A `customDatasources.modrinth` entry
+  queries each project's Modrinth releases filtered to `loaders=["paper"]`
+  and `game_versions=["26.2"]` — the same filter used by hand for every past
+  entry — and 8 regex managers (one per plugin/datapack) extract just the
+  version number already embedded in each pinned filename for comparison.
+  Deliberately set `dependencyDashboardApproval: true` rather than letting
+  these open PRs outright: a regex manager can only swap in the matched
+  version-number text, so an approved PR here would still carry the old,
+  now-mismatched URL and sha1 — actively wrong if merged as-is. A new
+  compatible version instead just appears as a pending item on the
+  Dependency Dashboard issue, meant purely as a "check this one" nudge, not
+  something to approve into a PR.
 
 ## minecraft
 
