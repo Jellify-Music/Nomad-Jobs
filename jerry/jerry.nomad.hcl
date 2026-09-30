@@ -31,7 +31,7 @@ EOF
       }
 
       resources {
-        cpu    = 500   # MHz
+        cpu    = 100   # MHz
         memory = 256   # MiB
       }
     }
