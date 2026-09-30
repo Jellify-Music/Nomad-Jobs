@@ -311,6 +311,11 @@ job "minecraft" {
           "https://cdn.modrinth.com/data/swbUV1cr/versions/pILlMIlN/bluemap-5.28-paper.jar" \
           "6e9d1bb29a43aa24108b5cb4b61de6efec1f521a" \
           "$data_dir/plugins/BlueMap.jar"
+
+        fetch_pinned \
+          "https://cdn.modrinth.com/data/pwCm0TtE/versions/o9SdPqFP/AutoTreeChop-1.7.5.jar" \
+          "5b2e013994950afadd3f22b0242dc0500da79c07" \
+          "$data_dir/plugins/AutoTreeChop.jar"
         EOT
         destination = "local/fetch-pinned-plugins.sh"
         perms       = "755"

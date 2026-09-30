@@ -59,6 +59,46 @@ Newest entries first, grouped by job.
   - A genuinely new job, nothing registered yet - skips the `terraform
     import` step other jobs in this repo needed.
 
+## Repo tooling
+
+### 2026-09-30
+
+- **Added Renovate** (`renovate.json`), requested directly ("keep track of
+  updates... so I can just merge an auto generated PR to bump changes").
+  Covers the two things that are both (a) actually tracked by a version or
+  digest and (b) require no bespoke verification to bump: the `:latest`
+  Docker images in `jerry`/`valheim`/`bobby` (via `pinDigests`
+  and a custom regex manager, since a bare `image = "..."` line in a
+  `.nomad.hcl` file isn't a format Renovate recognizes natively — its
+  `terraform`/Dockerfile managers don't scan Nomad job specs), and the
+  `hashicorp/nomad` provider constraint in `versions.tf` (Renovate's
+  `terraform` manager already scans any `*.tf` file for this, no extra
+  config needed). Deliberately does **not** cover the pinned plugin/datapack
+  jars in `minecraft/minecraft.nomad.hcl`'s `fetch-pinned-plugins` task
+  (Chunky, AuraSkills, ViaVersion, ViaBackwards, BlueMap, AutoTreeChop,
+  Terralith, Tectonic) — each of those pins a Modrinth CDN URL and a sha1
+  together, and Renovate's regex-based custom managers can only swap in a
+  new version/digest string in place, not regenerate an independent URL
+  (the CDN path embeds a Modrinth-assigned version ID, not the plain version
+  number) and recompute a hash from it. Those still need the same manual
+  compatibility-with-pinned-game-version check and checksum verification
+  done for each one so far. See `README.md`'s "Dependency updates (Renovate)"
+  section.
+- **Added version-number tracking for the 8 Modrinth-pinned plugins/datapacks**
+  above, requested directly ("extract version numbers from the minecraft
+  mods so that they could be tracked"). A `customDatasources.modrinth` entry
+  queries each project's Modrinth releases filtered to `loaders=["paper"]`
+  and `game_versions=["26.2"]` — the same filter used by hand for every past
+  entry — and 8 regex managers (one per plugin/datapack) extract just the
+  version number already embedded in each pinned filename for comparison.
+  Deliberately set `dependencyDashboardApproval: true` rather than letting
+  these open PRs outright: a regex manager can only swap in the matched
+  version-number text, so an approved PR here would still carry the old,
+  now-mismatched URL and sha1 — actively wrong if merged as-is. A new
+  compatible version instead just appears as a pending item on the
+  Dependency Dashboard issue, meant purely as a "check this one" nudge, not
+  something to approve into a PR.
+
 ## minecraft
 
 ### 2026-09-30
@@ -148,6 +188,20 @@ Newest entries first, grouped by job.
   here immediately - nothing further needed on this directory.
 - Established this CHANGELOG.md as where this kind of history goes from now
   on, instead of long inline `.nomad.hcl` comments.
+- **AutoTreeChop 1.7.5 added**, pinned and checksum-verified: fells an entire
+  tree from one log break and auto-replants the correct sapling, so chopped
+  forest actually regrows instead of leaving permanent stumps. Requested
+  directly ("auto regrowth plugin ... trees and other vegetation
+  automatically regrow"). Confirmed via Modrinth's API to declare support up
+  to game version 26.3, covering the pinned 26.2 build — same margin
+  BlueMap's pin has. Chosen over TimberReplant, TreeFalls, RealisticGrowth,
+  EzTree, TreeForce, and Auto Crop Replant: most of those hadn't published a
+  release declaring 26.2 support yet, and TimberReplant splits an unrelated
+  Fabric/Forge mod line and a separate, less mature Bukkit/Paper plugin line
+  across the same Modrinth project page, making it easy to pin the wrong
+  file. No hard dependencies (protection-plugin/CoreProtect/PlaceholderAPI
+  integration is optional) — doesn't need Vault or any other plugin already
+  running here.
 
 ### 2026-09-29
 
