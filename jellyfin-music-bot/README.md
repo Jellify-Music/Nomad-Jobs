@@ -18,14 +18,16 @@ sit in The Music Hall and run `/summon` (then `/play`, `/playliked`,
 `LOCKED_CHANNEL_IDS` would restrict which *text* channel(s) accept bot
 commands (not which voice channel it joins) — left unset here.
 
-## Secrets
+## Consul KV keys
 
 Populated in Consul KV before first deploy, same pattern as `jerry`'s
 Discord token:
 
-- `jellify/jellyfin-music-bot/DISCORD_CLIENT_TOKEN`
-- `jellify/jellyfin-music-bot/JELLYFIN_AUTHENTICATION_USERNAME`
-- `jellify/jellyfin-music-bot/JELLYFIN_AUTHENTICATION_PASSWORD`
+| Key | Used for |
+|---|---|
+| `jellify/jellyfin-music-bot/DISCORD_CLIENT_TOKEN` | Discord bot application token |
+| `jellify/jellyfin-music-bot/JELLYFIN_AUTHENTICATION_USERNAME` | Dedicated Jellyfin bot account username |
+| `jellify/jellyfin-music-bot/JELLYFIN_AUTHENTICATION_PASSWORD` | Dedicated Jellyfin bot account password |
 
 The Jellyfin credentials must belong to a **dedicated bot account**, not the
 admin account (per upstream's own advice). The Discord bot application

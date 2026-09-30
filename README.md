@@ -11,6 +11,15 @@ separate repo and are deployed by hand against the cluster's HTTP API. A job
 moves out of that repo and into this one when it's brought under Terraform,
 at which point its `.nomad.hcl` file's canonical copy lives here.
 
+## Jobs
+
+- [`jellyfin-music-bot`](jellyfin-music-bot)
+- `minecraft`, `jerry`, `valheim`, `actions-runner` — READMEs for these
+  exist on `main` but haven't been merged into this branch
+  (`add-jellyfin-music-bot`) yet, so they're not linked here to avoid
+  pointing at files that don't exist on this branch. Once merged, add them
+  to this list the same way.
+
 ## Structure
 
 ```

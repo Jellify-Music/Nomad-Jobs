@@ -158,6 +158,16 @@ keys under a prefix without reading values first
 (`curl 'http://127.0.0.1:8500/v1/kv/<prefix>?keys'`) before reading an
 actual value.
 
+**Exception to the naming convention**: `jerry`'s keys live under
+`jellify/discord-bot/*`, not `jellify/jerry/*` — the job ID and its Consul
+KV namespace don't match here (unlike every other job in this repo). Not
+worth renaming/migrating just for consistency (live keys, no functional
+issue), but don't assume job ID == KV prefix without checking when adding a
+new job's `template` block.
+
+Each job's own README has a "Consul KV keys" table listing exactly what it
+needs — check there rather than grepping the `.hcl` by hand.
+
 ## Don't
 
 - Don't hand-deploy a job spec that lives in this repo directly against the
