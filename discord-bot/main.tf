@@ -1,4 +1,3 @@
-module "discord_bot" {
-  source       = "../modules/nomad-job"
-  jobspec_path = "${path.module}/jellify.nomad.hcl"
+resource "nomad_job" "jellify" {
+  jobspec = file("${path.module}/jellify.nomad.hcl")
 }

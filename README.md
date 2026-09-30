@@ -15,28 +15,36 @@ at which point its `.nomad.hcl` file's canonical copy lives here.
 
 ```
 .
-├── modules/nomad-job/   reusable module: wraps one job file in a nomad_job resource
 ├── minecraft/           root module for the minecraft job (Paper server), own state
 │   ├── minecraft.nomad.hcl
-│   ├── main.tf
+│   ├── main.tf          resource "nomad_job" "minecraft" { jobspec = file(...) }
 │   └── versions.tf
 └── discord-bot/         root module for the jellify Discord bot job, own state
     ├── jellify.nomad.hcl
-    ├── main.tf
+    ├── main.tf          resource "nomad_job" "jellify" { jobspec = file(...) }
     └── versions.tf
 ```
 
 One root module per job, each with its own Consul-backed state. This keeps
 blast radius scoped to a single job — running Terraform for `minecraft` can
-never lock or diff against another job's state. `nomad_job.jobspec` loads the
-job's `.nomad.hcl` file via `file()` rather than embedding it as a Terraform
-heredoc — Nomad's own `${NOMAD_ALLOC_DIR}`/`${NOMAD_TASK_DIR}`-style
-interpolation syntax would otherwise collide with Terraform's own `${...}`
-template interpolation inside a heredoc string.
+never lock or diff against another job's state. Each `main.tf` is a single
+`nomad_job` resource, named to match that job's actual Nomad job ID (the
+`job "..."` block's name, not the directory) — that's what makes
+`terraform import <address> <job-id>` read intuitively, e.g.
+`nomad_job.minecraft` importing job ID `minecraft`. The `hashicorp/nomad`
+provider's `nomad_job` resource is already the whole abstraction here (one
+`jobspec` string in, one job registered out), so there's no wrapper module —
+one would only add indirection with no behavior of its own.
+
+`jobspec` loads the job's `.nomad.hcl` file via `file()` rather than
+embedding it as a Terraform heredoc — Nomad's own
+`${NOMAD_ALLOC_DIR}`/`${NOMAD_TASK_DIR}`-style interpolation syntax would
+otherwise collide with Terraform's own `${...}` template interpolation
+inside a heredoc string.
 
 Adding a new job: copy `minecraft/` to `<job>/`, replace `minecraft.nomad.hcl`
-with that job's spec, update `jobspec_path`/the backend `path` in the copied
-`main.tf`/`versions.tf`.
+with that job's spec, rename the resource in `main.tf` to match its job ID,
+and update the backend `path` in `versions.tf`.
 
 ## Why Consul for state
 
@@ -57,7 +65,7 @@ confirm a plan is a true no-op before ever running apply:
 ```sh
 cd minecraft
 terraform init
-terraform import module.minecraft.nomad_job.this minecraft
+terraform import nomad_job.minecraft minecraft
 terraform plan   # must show "No changes" - if it doesn't, stop and diff by hand first
 ```
 

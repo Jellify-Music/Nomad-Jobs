@@ -1,4 +1,3 @@
-module "minecraft" {
-  source       = "../modules/nomad-job"
-  jobspec_path = "${path.module}/minecraft.nomad.hcl"
+resource "nomad_job" "minecraft" {
+  jobspec = file("${path.module}/minecraft.nomad.hcl")
 }
