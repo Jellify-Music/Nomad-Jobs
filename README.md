@@ -75,6 +75,42 @@ separate hand-deployed `nomad-jobs` repo's convention (heavy inline comments,
 no changelog) - that repo isn't changing retroactively, but anything brought
 under Terraform here follows this convention going forward.
 
+## Dependency updates (Renovate)
+
+[`renovate.json`](renovate.json) tracks two things repo-wide and opens a PR
+whenever either changes — no config needed to get the second one, Renovate's
+built-in `terraform` manager already scans any `*.tf` file for
+`required_providers` blocks:
+
+- **Docker images** referenced by `.nomad.hcl` job specs (`jerry`, `valheim`,
+  `jellyfin-music-bot` once merged). These are all pinned to the `:latest`
+  tag, which has nothing for Renovate to version-bump on its own, so
+  `pinDigests` makes it pin each one to the digest `:latest` currently
+  resolves to (`image:latest@sha256:...`) and open a PR each time that
+  digest changes upstream — same "new build published" signal, just keyed
+  off the digest instead of a version number.
+- **The `hashicorp/nomad` Terraform provider** version constraint in
+  [`versions.tf`](versions.tf).
+
+**Not covered:** the pinned plugin/datapack jars in
+[`minecraft/minecraft.nomad.hcl`](minecraft/minecraft.nomad.hcl)'s
+`fetch-pinned-plugins` task (Chunky, AuraSkills, ViaVersion, ViaBackwards,
+BlueMap, AutoTreeChop, Terralith, Tectonic). Each of those pins a Modrinth
+CDN URL *and* a sha1 the deploy-time script verifies against — Renovate's
+regex-based custom managers can only swap in a new version string or digest
+in place, they can't independently regenerate a correct download URL (the
+CDN path embeds a Modrinth-assigned version ID, not the version number) and
+recompute its hash. Bumping these still means repeating the same
+compatibility check (does a release declare support for the pinned Paper
+game version?) and checksum verification done for each one so far, documented
+per-entry in `CHANGELOG.md`. `paper.jar` and Geyser/Floodgate aren't pinned
+at all — those tasks already resolve and verify the latest build at every
+deploy, so there's nothing for Renovate to track there.
+
+Onboarding step (one-time, not something I can do from here): install the
+[Renovate GitHub App](https://github.com/apps/renovate) on this repo. Once
+installed it picks up `renovate.json` on its own.
+
 ## Why Consul for state
 
 The cluster already runs Consul with ACLs disabled, shared across every Nomad

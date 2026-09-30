@@ -10,6 +10,32 @@ inline HCL comments.
 
 Newest entries first, grouped by job.
 
+## Repo tooling
+
+### 2026-09-30
+
+- **Added Renovate** (`renovate.json`), requested directly ("keep track of
+  updates... so I can just merge an auto generated PR to bump changes").
+  Covers the two things that are both (a) actually tracked by a version or
+  digest and (b) require no bespoke verification to bump: the `:latest`
+  Docker images in `jerry`/`valheim`/`jellyfin-music-bot` (via `pinDigests`
+  and a custom regex manager, since a bare `image = "..."` line in a
+  `.nomad.hcl` file isn't a format Renovate recognizes natively — its
+  `terraform`/Dockerfile managers don't scan Nomad job specs), and the
+  `hashicorp/nomad` provider constraint in `versions.tf` (Renovate's
+  `terraform` manager already scans any `*.tf` file for this, no extra
+  config needed). Deliberately does **not** cover the pinned plugin/datapack
+  jars in `minecraft/minecraft.nomad.hcl`'s `fetch-pinned-plugins` task
+  (Chunky, AuraSkills, ViaVersion, ViaBackwards, BlueMap, AutoTreeChop,
+  Terralith, Tectonic) — each of those pins a Modrinth CDN URL and a sha1
+  together, and Renovate's regex-based custom managers can only swap in a
+  new version/digest string in place, not regenerate an independent URL
+  (the CDN path embeds a Modrinth-assigned version ID, not the plain version
+  number) and recompute a hash from it. Those still need the same manual
+  compatibility-with-pinned-game-version check and checksum verification
+  done for each one so far. See `README.md`'s "Dependency updates (Renovate)"
+  section.
+
 ## minecraft
 
 ### 2026-09-30
