@@ -60,6 +60,19 @@ resource "nomad_job" "<job-id>" {
 }
 ```
 
+## Changelog
+
+Job spec (`.nomad.hcl`) files here stay lean — no long inline comment blocks
+explaining *why* something is the way it is, or the history of how it got
+there. That belongs in [`CHANGELOG.md`](CHANGELOG.md) instead, dated, grouped
+by job. A comment in a `.nomad.hcl` file should only ever describe something
+non-obvious about its *current* state in a line or two; anything more (a
+fix, a migration, a "confirmed on this date" note, a decision between
+alternatives) goes in the changelog. This is a deliberate departure from the
+separate hand-deployed `nomad-jobs` repo's convention (heavy inline comments,
+no changelog) - that repo isn't changing retroactively, but anything brought
+under Terraform here follows this convention going forward.
+
 ## Why Consul for state
 
 The cluster already runs Consul with ACLs disabled, shared across every Nomad
