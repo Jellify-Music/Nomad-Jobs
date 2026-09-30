@@ -1,4 +1,4 @@
-# jellyfin-music-bot
+# bobby
 
 Discord bot that broadcasts the Jellify Jellyfin library into a Discord
 voice channel, via
@@ -6,6 +6,12 @@ voice channel, via
 (`ghcr.io/manuel-rw/jellyfin-discord-music-bot:latest`). Runs specifically
 for `The Music Hall` (channel ID `1437161572396044288`) on the Jellify
 Discord server (guild ID `1351285328400351344`).
+
+Named after Bobby Weir, same convention as [`jerry`](../jerry) (Jerry
+Garcia) — see [`jerry/README.md`](../jerry/README.md#naming) for the full
+naming table. Requires its own, distinct Discord bot application/token;
+`jerry`'s token can't be reused (see `bobby`'s `CHANGELOG.md` entry for
+why).
 
 ## Not zero-touch after a deploy
 
@@ -25,9 +31,9 @@ Discord token:
 
 | Key | Used for |
 |---|---|
-| `jellify/jellyfin-music-bot/DISCORD_CLIENT_TOKEN` | Discord bot application token |
-| `jellify/jellyfin-music-bot/JELLYFIN_AUTHENTICATION_USERNAME` | Dedicated Jellyfin bot account username |
-| `jellify/jellyfin-music-bot/JELLYFIN_AUTHENTICATION_PASSWORD` | Dedicated Jellyfin bot account password |
+| `jellify/bobby/DISCORD_CLIENT_TOKEN` | Discord bot application token |
+| `jellify/bobby/JELLYFIN_AUTHENTICATION_USERNAME` | Dedicated Jellyfin bot account username |
+| `jellify/bobby/JELLYFIN_AUTHENTICATION_PASSWORD` | Dedicated Jellyfin bot account password |
 
 The Jellyfin credentials must belong to a **dedicated bot account**, not the
 admin account (per upstream's own advice). The Discord bot application

@@ -34,15 +34,29 @@ repo's `jellify/<job>/<KEY_NAME>` convention (see `.agents/AGENTS.md`).
 | `jellify/discord-bot/OPENAI_BASE_URL` | Self-hosted inference endpoint address |
 
 The Discord bot application itself (token, invite) has to be created by hand
-in the Discord Developer Portal first, same as `jellyfin-music-bot`.
+in the Discord Developer Portal first, same as `bobby`.
 
 ## Notable choices
 
-- **No `constraint` block** — unlike `valheim`/`minecraft`/
-  `jellyfin-music-bot` (amd64-only) and `actions-runner` (arm64/darwin-only),
-  this job can land on any jellify node. It's a lightweight Docker container
-  with no architecture-specific dependency (no SteamCMD, no native JVM/JDK
-  fetch), so there's nothing to pin it to one CPU arch.
+- **No `constraint` block** — unlike `valheim`/`minecraft`/`bobby`
+  (amd64-only) and `actions-runner` (arm64/darwin-only), this job can land
+  on any jellify node. It's a lightweight Docker container with no
+  architecture-specific dependency (no SteamCMD, no native JVM/JDK fetch),
+  so there's nothing to pin it to one CPU arch.
 - No operational history recorded in [`../CHANGELOG.md`](../CHANGELOG.md#jerry)
   yet — this job has been stable since it was brought under Terraform. Any
   future fix/decision should get a dated entry there, not an inline comment.
+
+## Naming
+
+Discord bots in this repo are named after Grateful Dead members, matching
+each bot's role to the band member it's "voiced" as:
+
+| Job | Named for | Role |
+|---|---|---|
+| `jerry` | Jerry Garcia | Chat bot — text-channel conversation |
+| [`bobby`](../bobby) | Bobby Weir | Voice bot — streams the Jellyfin library into a voice channel |
+
+Job ID and directory name should match this bot name going forward for any
+new Discord bot added here (`jerry` is the one legacy exception — see its
+"Consul KV keys" section above).

@@ -1,8 +1,8 @@
-job "jellyfin-music-bot" {
+job "bobby" {
   datacenters = ["jellify"]
   type        = "service"
 
-  group "jellyfin-music-bot" {
+  group "bobby" {
     count = 1
 
     # amd64-only, same as valheim/minecraft - runs via Nomad's built-in
@@ -14,7 +14,7 @@ job "jellyfin-music-bot" {
       value     = "amd64"
     }
 
-    task "jellyfin-music-bot" {
+    task "bobby" {
       driver = "docker"
 
       env {
@@ -30,9 +30,9 @@ job "jellyfin-music-bot" {
         destination = "secrets/.env"
         env         = true
         data        = <<EOF
-DISCORD_CLIENT_TOKEN={{ key "jellify/jellyfin-music-bot/DISCORD_CLIENT_TOKEN" }}
-JELLYFIN_AUTHENTICATION_USERNAME={{ key "jellify/jellyfin-music-bot/JELLYFIN_AUTHENTICATION_USERNAME" }}
-JELLYFIN_AUTHENTICATION_PASSWORD={{ key "jellify/jellyfin-music-bot/JELLYFIN_AUTHENTICATION_PASSWORD" }}
+DISCORD_CLIENT_TOKEN={{ key "jellify/bobby/DISCORD_CLIENT_TOKEN" }}
+JELLYFIN_AUTHENTICATION_USERNAME={{ key "jellify/bobby/JELLYFIN_AUTHENTICATION_USERNAME" }}
+JELLYFIN_AUTHENTICATION_PASSWORD={{ key "jellify/bobby/JELLYFIN_AUTHENTICATION_PASSWORD" }}
 EOF
       }
 

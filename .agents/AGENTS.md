@@ -40,7 +40,7 @@ is the live-ish reference — see caveat below):
 |---|---|---|
 | `galileo.jellify.app` | macOS, arm64 (Apple Silicon Mac mini) | `container`+`podman` enabled, runs `gh_actions` (the actions-runner job) |
 | `hopper.jellify.app` | macOS, arm64 | `container` enabled |
-| `euler.jellify.app` | Ubuntu, amd64 | added for x86-only jobs (minecraft/valheim/jellyfin-music-bot) |
+| `euler.jellify.app` | Ubuntu, amd64 | added for x86-only jobs (minecraft/valheim/bobby) |
 | `dijkstra.jellify.app` | Ubuntu, amd64 | same |
 | `fibonacci.jellify.app` | Ubuntu, amd64 | same |
 | `kepler.jellify.app` | Ubuntu, amd64 | same |
@@ -84,7 +84,7 @@ constraint {
 ```
 
 Existing precedent in this repo: `minecraft`, `valheim`, and
-`jellyfin-music-bot` constrain to `amd64` (native x86_64 Linux, no
+`bobby` constrain to `amd64` (native x86_64 Linux, no
 Rosetta/emulation); `actions-runner` constrains to `arm64` + `darwin`
 (needs `ANDROID_HOME`/Xcode-adjacent tooling only present on the Mac
 minis). `jerry` (the Discord bot) is unconstrained — it's a plain `docker`
@@ -153,7 +153,7 @@ EOT
 ```
 
 Convention here: keys live under `jellify/<job>/<KEY_NAME>` (see
-`jellyfin-music-bot`'s entry in `CHANGELOG.md` for a real example). List
+`bobby`'s entry in `CHANGELOG.md` for a real example). List
 keys under a prefix without reading values first
 (`curl 'http://127.0.0.1:8500/v1/kv/<prefix>?keys'`) before reading an
 actual value.

@@ -17,7 +17,9 @@ at which point its `.nomad.hcl` file's canonical copy lives here.
 - [`jerry`](jerry) — job ID is `jellify`, directory/README named `jerry`
 - [`valheim`](valheim)
 - [`actions-runner`](actions-runner)
-- [`jellyfin-music-bot`](jellyfin-music-bot)
+- [`bobby`](bobby) — Discord bots in this repo are named after Grateful Dead
+  members; see [`jerry/README.md`](jerry/README.md#naming) for the
+  convention
 
 ## Structure
 
@@ -33,8 +35,8 @@ at which point its `.nomad.hcl` file's canonical copy lives here.
 │   └── valheim.nomad.hcl
 ├── actions-runner/
 │   └── actions-runner.nomad.hcl
-└── jellyfin-music-bot/
-    └── jellyfin-music-bot.nomad.hcl
+└── bobby/                  the Jellyfin-to-Discord voice bot
+    └── bobby.nomad.hcl
 ```
 
 This is a single root module — every job is one `nomad_job` resource in the
