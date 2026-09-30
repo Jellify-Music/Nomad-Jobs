@@ -15,42 +15,53 @@ at which point its `.nomad.hcl` file's canonical copy lives here.
 
 ```
 .
-├── minecraft/           root module for the minecraft job (Paper server), own state
-│   ├── minecraft.nomad.hcl
-│   ├── main.tf          resource "nomad_job" "minecraft" { jobspec = file(...) }
-│   └── versions.tf
-└── discord-bot/         root module for the jellify Discord bot job, own state
-    ├── jellify.nomad.hcl
-    ├── main.tf          resource "nomad_job" "jellify" { jobspec = file(...) }
-    └── versions.tf
+├── main.tf               one nomad_job resource per job, shared state
+├── versions.tf
+├── minecraft/
+│   └── minecraft.nomad.hcl
+└── jerry/                 the jellify Discord bot job
+    └── jerry.nomad.hcl
 ```
 
-One root module per job, each with its own Consul-backed state. This keeps
-blast radius scoped to a single job — running Terraform for `minecraft` can
-never lock or diff against another job's state. Each `main.tf` is a single
-`nomad_job` resource, named to match that job's actual Nomad job ID (the
+This is a single root module — every job is one `nomad_job` resource in the
+same `main.tf`, sharing one Consul-backed state, and Semaphore only needs one
+Terraform App (pointed at the repo root) to plan/apply everything. The
+tradeoff: `plan`/`apply` always cover every job at once, so a change to one
+job's spec shows up in the same diff as everyone else's, and approving an
+apply applies all of them together. Read the whole plan before approving —
+there's no way to approve just one job's change here. If a job ever needs to
+be isolated from that blast radius (frequent changes, higher risk, whatever
+the reason), split it back out into its own directory with its own
+`main.tf`/`versions.tf`/backend `path`, same pattern as before.
+
+Each resource is named to match its job's actual Nomad job ID (the
 `job "..."` block's name, not the directory) — that's what makes
 `terraform import <address> <job-id>` read intuitively, e.g.
-`nomad_job.minecraft` importing job ID `minecraft`. The `hashicorp/nomad`
+`nomad_job.minecraft` importing job ID `minecraft`, or `nomad_job.jellify`
+(in the `jerry/` directory) importing job ID `jellify`. The `hashicorp/nomad`
 provider's `nomad_job` resource is already the whole abstraction here (one
 `jobspec` string in, one job registered out), so there's no wrapper module —
 one would only add indirection with no behavior of its own.
 
-`jobspec` loads the job's `.nomad.hcl` file via `file()` rather than
+`jobspec` loads each job's `.nomad.hcl` file via `file()` rather than
 embedding it as a Terraform heredoc — Nomad's own
 `${NOMAD_ALLOC_DIR}`/`${NOMAD_TASK_DIR}`-style interpolation syntax would
 otherwise collide with Terraform's own `${...}` template interpolation
 inside a heredoc string.
 
-Adding a new job: copy `minecraft/` to `<job>/`, replace `minecraft.nomad.hcl`
-with that job's spec, rename the resource in `main.tf` to match its job ID,
-and update the backend `path` in `versions.tf`.
+Adding a new job: create `<job>/<job>.nomad.hcl` with that job's spec, then
+add a resource block to `main.tf`:
+
+```hcl
+resource "nomad_job" "<job-id>" {
+  jobspec = file("${path.module}/<job>/<job>.nomad.hcl")
+}
+```
 
 ## Why Consul for state
 
 The cluster already runs Consul with ACLs disabled, shared across every Nomad
-datacenter (`jellify`'s agents `retry_join` the same servers as every other
-datacenter) — so it doubles as state storage with no new infra. Same
+datacenter — so it doubles as state storage with no new infra. Same
 reasoning for the `nomad` provider's `address`: every host in the cluster
 (any datacenter) reaches `127.0.0.1:4646` locally, and ACLs being off means
 there's no token to configure.
@@ -63,24 +74,27 @@ deploy. Import the existing job into state instead of creating it fresh, then
 confirm a plan is a true no-op before ever running apply:
 
 ```sh
-cd minecraft
 terraform init
 terraform import nomad_job.minecraft minecraft
 terraform plan   # must show "No changes" - if it doesn't, stop and diff by hand first
 ```
 
-Only once `plan` is clean should Semaphore (or a human) ever run `apply`
-against this directory. A genuinely new job with nothing registered yet (e.g.
-`discord-bot`) skips this entirely — `terraform apply` after a clean `plan`
-(showing a create, not an update) is all that's needed.
+Because this is a single shared state, that `plan` will also show whatever
+every other job in `main.tf` is doing (a create, for anything not yet
+imported/applied) — only the `minecraft` portion needs to read as a no-op.
+
+Only once `plan` looks right should Semaphore (or a human) ever run `apply`.
+A genuinely new job with nothing registered yet (e.g. `jerry`) skips the
+import step entirely — its resource just needs to show up as a create in
+that same plan.
 
 ## Wiring into Semaphore
 
-1. Add a Terraform "App" per job, each pointed at this repo with that job's
-   directory (`minecraft`, `discord-bot`, ...) as the working directory —
-   keeps one job's plan/apply from ever touching another's state.
+1. Add a single Terraform "App" pointed at this repo, working directory set
+   to the repo root (not a job subdirectory — the `.tf` files live there
+   now).
 2. No extra credentials needed in the task template — Consul and Nomad are
    both unauthenticated on `127.0.0.1`, reachable because Semaphore itself
    runs as a Nomad job on one of the cluster's hosts.
-3. Trigger each app on merge to `main` touching its own directory, with the
-   plan step requiring manual approval before apply.
+3. Trigger the app on every merge to `main`, with the plan step requiring
+   manual approval before apply.
