@@ -17,11 +17,11 @@ job "jellify" {
         destination = "secrets/.env"
         env = true
         data = <<EOF
-DISCORD_TOKEN={{ key "jellify/discord-bot/DISCORD_TOKEN" }}
-DISCORD_CLIENT_ID={{ key "jellify/discord-bot/DISCORD_CLIENT_ID" }}
-DISCORD_GUILD_ID={{ key "jellify/discord-bot/DISCORD_GUILD_ID" }}
-OPENAI_API_KEY={{ key "jellify/discord-bot/OPENAI_API_KEY" }}
-OPENAI_BASE_URL={{ key "jellify/discord-bot/OPENAI_BASE_URL" }}
+DISCORD_TOKEN="{{ key "jellify/discord-bot/DISCORD_TOKEN" }}"
+DISCORD_CLIENT_ID="{{ key "jellify/discord-bot/DISCORD_CLIENT_ID" }}"
+DISCORD_GUILD_ID="{{ key "jellify/discord-bot/DISCORD_GUILD_ID" }}"
+OPENAI_API_KEY="{{ key "jellify/discord-bot/OPENAI_API_KEY" }}"
+OPENAI_BASE_URL="{{ key "jellify/discord-bot/OPENAI_BASE_URL" }}"
 EOF
       }
 

@@ -14,6 +14,26 @@ Newest entries first, grouped by job.
 
 ### 2026-09-30
 
+- **Fixed: bot couldn't authenticate to Jellyfin, so it never found music or
+  joined voice.** Root cause - the `secrets/.env` template's values were
+  unquoted, and Nomad's `template { env = true }` line parser
+  ([`hashicorp/go-envparse`](https://github.com/hashicorp/go-envparse))
+  treats a bare `#` as the start of a comment *anywhere* in an unquoted
+  value, no preceding whitespace required - it doesn't follow the
+  dotenv/shell convention of only doing that after whitespace. The Jellyfin
+  account's password contains a `#`, so only the characters before it ever
+  reached the container's environment; every `POST
+  /Users/AuthenticateByName` to Jellyfin came back `401`, confirmed via
+  `/v1/client/fs/logs` on the alloc's `stderr`. Fixed by wrapping all three
+  templated values in double quotes - `go-envparse` preserves `#` (and most
+  other characters) literally inside quotes. Applied the same fix to
+  `jerry/jerry.nomad.hcl` and `minecraft/minecraft.nomad.hcl`'s
+  `RCON_PASSWORD` line, which had the identical unquoted-value pattern and
+  the same latent bug risk (`valheim/valheim.nomad.hcl`'s `PASSWORD` was
+  already quoted). Note this only guards against unquoted special
+  characters like `#` - a literal `"` inside a secret would still need
+  escaping (`go-envparse` supports `\"` inside double quotes, same as JSON),
+  not handled here since none of the current secrets are known to contain one.
 - **Renamed from `jellyfin-music-bot` to `bobby`** (job ID, directory, and
   Consul KV prefix all moved from `jellyfin-music-bot`/`jellify/jellyfin-music-bot/*`
   to `bobby`/`jellify/bobby/*`) before its first deploy - no import/migration

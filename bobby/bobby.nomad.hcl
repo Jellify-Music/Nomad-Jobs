@@ -30,9 +30,9 @@ job "bobby" {
         destination = "secrets/.env"
         env         = true
         data        = <<EOF
-DISCORD_CLIENT_TOKEN={{ key "jellify/bobby/DISCORD_CLIENT_TOKEN" }}
-JELLYFIN_AUTHENTICATION_USERNAME={{ key "jellify/bobby/JELLYFIN_AUTHENTICATION_USERNAME" }}
-JELLYFIN_AUTHENTICATION_PASSWORD={{ key "jellify/bobby/JELLYFIN_AUTHENTICATION_PASSWORD" }}
+DISCORD_CLIENT_TOKEN="{{ key "jellify/bobby/DISCORD_CLIENT_TOKEN" }}"
+JELLYFIN_AUTHENTICATION_USERNAME="{{ key "jellify/bobby/JELLYFIN_AUTHENTICATION_USERNAME" }}"
+JELLYFIN_AUTHENTICATION_PASSWORD="{{ key "jellify/bobby/JELLYFIN_AUTHENTICATION_PASSWORD" }}"
 EOF
       }
 

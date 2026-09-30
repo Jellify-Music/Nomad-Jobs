@@ -42,7 +42,7 @@ job "minecraft" {
 
       template {
         data        = <<-EOT
-        RCON_PASSWORD={{ key "minecraft/RCON_PASSWORD" }}
+        RCON_PASSWORD="{{ key "minecraft/RCON_PASSWORD" }}"
         EOT
         destination = "secrets/rcon.env"
         env         = true
