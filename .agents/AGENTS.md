@@ -38,8 +38,8 @@ is the live-ish reference — see caveat below):
 
 | Host | OS/arch | Notes |
 |---|---|---|
-| `galileo.jellify.app` | macOS, arm64 (Apple Silicon Mac mini) | `container`+`podman` enabled, runs `gh_actions` (the actions-runner job) |
-| `hopper.jellify.app` | macOS, arm64 | `container` enabled |
+| `galileo.jellify.app` | macOS, arm64 (Apple Silicon Mac mini) | `container`+`podman` enabled; in the `github_runners` group (runs actions-runner) |
+| `hopper.jellify.app` | macOS, arm64 | `container` enabled; in the `github_runners` group (runs actions-runner) |
 | `euler.jellify.app` | Ubuntu, amd64 | added for x86-only jobs (minecraft/valheim/bobby) |
 | `dijkstra.jellify.app` | Ubuntu, amd64 | same |
 | `fibonacci.jellify.app` | Ubuntu, amd64 | same |

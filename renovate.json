@@ -25,6 +25,15 @@
     },
     {
       "customType": "regex",
+      "description": "Versions in Nomad job specs annotated with a `# renovate:` comment on the line above (e.g. actions-runner's runner_version local)",
+      "managerFilePatterns": ["\\.nomad\\.hcl$"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+extractVersion=(?<extractVersion>\\S+))?\\s*\\n[^=\\n]+=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "extractVersionTemplate": "{{#if extractVersion}}{{{extractVersion}}}{{else}}^v?(?<version>.+)${{/if}}"
+    },
+    {
+      "customType": "regex",
       "description": "Terralith datapack version, tracked against Modrinth releases for the pinned Paper game version - see README, PRs from this manager need manual follow-up",
       "managerFilePatterns": ["\\.nomad\\.hcl$"],
       "matchStrings": ["Terralith_26\\.2_v(?<currentValue>[0-9.]+)\\.zip"],

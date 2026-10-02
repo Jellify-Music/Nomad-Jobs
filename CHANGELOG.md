@@ -412,6 +412,38 @@ an entry here rather than inline comments, per the convention above.
 
 ## actions-runner
 
+### 2026-10-02
+
+- **Rewritten: runners are now fully managed by this job.** Previously the
+  runner was downloaded and registered by hand on each host
+  (`/opt/github-actions`, a persistent registration named after the host)
+  and Nomad only started its `run.sh`. Now the `artifact` block downloads
+  the runner at a Renovate-tracked `runner_version`, and `start.sh` loops
+  over single-use [JIT registrations](https://docs.github.com/en/rest/actions/self-hosted-runners#create-configuration-for-a-just-in-time-runner-for-a-repository),
+  using a PAT from Consul KV (`jellify/actions-runner/GITHUB_PAT`). The
+  `_work` folder is wiped before every job.
+- **`service` with `count = 2` → `system` constrained to
+  `meta.inventory_groups` containing `github_runners`.** Prompted by hopper
+  silently having no runner: its `raw_exec` driver wasn't healthy when
+  version 7 deployed (2026-10-01), the deployment hit its progress deadline,
+  and a failed deployment stops Nomad placing the missing allocation even
+  after the node recovered (`nomad job eval` placed nothing). A system job
+  has no deployment to get stuck, and `count = 2` never had a
+  `distinct_hosts` constraint anyway. The `arm64` constraint is gone (the
+  group membership is the real constraint); `darwin` stays because the `env`
+  paths are macOS-specific.
+- **Runner state moved out of violet's home.** `HOME` is
+  `/opt/github-actions/home` and the tool cache
+  `/opt/github-actions/toolcache`, so Gradle caches, AVDs and bun's install
+  cache (previously ~18 GB per host under `/Users/violet`) live in one tree.
+  bun's cache is cleared once it passes 10 GB.
+- **Toolchain is now Ansible-managed and version-pinned** (Nomadable
+  `github_runners` group vars → Nomadintosh's `homebrew_packages`,
+  `release_archives` and `android_sdk` roles): bun via
+  `oven-sh/bun/bun@<version>`, Maestro under `/opt/maestro/current`,
+  `openjdk@17` as `JAVA_HOME`. The App's self-hosted workflows stopped
+  installing bun, Maestro and the JDK themselves.
+
 ### 2026-09-30
 
 - **Brought under Terraform**, migrated from the `Nomadintosh` Ansible
