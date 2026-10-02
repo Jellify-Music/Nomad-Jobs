@@ -7,6 +7,14 @@ file is a quick-reference for *what's installed and why*. Full dated history
 lives in [`../CHANGELOG.md`](../CHANGELOG.md#minecraft) — this file just
 summarizes the current state.
 
+## Where it runs
+
+Constrained to Nomadable's `game_servers` inventory group (euler/kepler),
+which provides the Java runtime: `openjdk-25-jre-headless` from Ubuntu's
+archive, installed through `additional_apt_packages`. Paper 26.1+ needs Java
+25+. The job runs `/usr/lib/jvm/java-25-openjdk-amd64/bin/java` directly, so
+a JDK bump means changing that package and this path together.
+
 ## Plugins
 
 | Plugin | Version | Purpose |

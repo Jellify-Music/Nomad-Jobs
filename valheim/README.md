@@ -15,7 +15,9 @@ one).
   the arm64 jellify nodes (galileo/hopper) can't run SteamCMD's 32-bit
   bootstrap binary — runs on the x86_64 jellify nodes
   (kepler/fibonacci/euler/dijkstra) instead, added to the cluster
-  specifically for jobs like this one and `minecraft`.
+  specifically for jobs like this one and `minecraft`. Of those, it only
+  runs on Nomadable's `game_servers` inventory group (euler/kepler), via the
+  `meta.inventory_groups` node meta.
 - **`PUBLIC = "0"`.** Friends-only server, reachable by direct IP/Steam
   invite — not listed in the public Steam server browser, avoiding random
   scan/join attempts against a modded, password-protected server.

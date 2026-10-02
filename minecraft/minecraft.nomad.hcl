@@ -8,6 +8,16 @@ job "minecraft" {
   group "minecraft" {
     count = 1
 
+    # Nomadable's game_servers inventory group (published as node meta by
+    # nomaduntu's nomad role), which also installs the JRE the main task runs
+    # (openjdk-25-jre-headless, via additional_apt_packages). amd64 stays as
+    # a guard against a non-x86 host joining the group.
+    constraint {
+      attribute = "${meta.inventory_groups}"
+      operator  = "set_contains"
+      value     = "game_servers"
+    }
+
     constraint {
       attribute = "${attr.cpu.arch}"
       value     = "amd64"
@@ -331,51 +341,6 @@ job "minecraft" {
       }
     }
 
-    task "fetch-jdk" {
-      driver = "raw_exec"
-
-      lifecycle {
-        hook    = "prestart"
-        sidecar = false
-      }
-
-      template {
-        data        = <<-EOT
-        #!/bin/sh
-        set -eu
-
-        jdk_dir="/opt/nomad/temurin-jdk"
-        if [ -x "$jdk_dir/bin/java" ]; then
-          echo "JDK already present at $jdk_dir"
-          exit 0
-        fi
-
-        ua="cosmonautical-nomad-jobs/1.0 (violet@cosmonautical.cloud)"
-        tmp="/opt/nomad/temurin-jdk.tar.gz"
-
-        curl -sfL -H "User-Agent: $ua" -o "$tmp" \
-          "https://api.adoptium.net/v3/binary/latest/25/ga/linux/x64/jdk/hotspot/normal/eclipse"
-
-        rm -rf "$jdk_dir"
-        mkdir -p "$jdk_dir"
-        tar -xzf "$tmp" -C "$jdk_dir" --strip-components=1
-        rm -f "$tmp"
-        echo "JDK installed to $jdk_dir"
-        EOT
-        destination = "local/fetch-jdk.sh"
-        perms       = "755"
-      }
-
-      config {
-        command = "${NOMAD_TASK_DIR}/fetch-jdk.sh"
-      }
-
-      resources {
-        cpu    = 2
-        memory = 256
-      }
-    }
-
     task "minecraft" {
       driver = "raw_exec"
 
@@ -393,7 +358,7 @@ job "minecraft" {
 
         echo "eula=true" > eula.txt
 
-        /opt/nomad/temurin-jdk/bin/java \
+        /usr/lib/jvm/java-25-openjdk-amd64/bin/java \
           -Xms8G -Xmx14G -XX:+UseG1GC \
           -jar "$local_dir/paper.jar" \
           --nogui \

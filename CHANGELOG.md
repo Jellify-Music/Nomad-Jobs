@@ -149,6 +149,22 @@ Newest entries first, grouped by job.
 
 ## minecraft
 
+### 2026-10-02
+
+- **Moved to Nomadable's `game_servers` group, Java now comes from apt.**
+  Constrained to `meta.inventory_groups` containing `game_servers`
+  (euler/kepler), keeping the `amd64` constraint as a guard. The
+  `fetch-jdk` prestart task is gone: the JRE is now
+  `openjdk-25-jre-headless`, installed on that group by Nomadable through
+  `additional_apt_packages`, and `start.sh` runs
+  `/usr/lib/jvm/java-25-openjdk-amd64/bin/java`. Libraries a job needs are
+  host provisioning, not something each job downloads for itself; Ubuntu
+  26.04's OpenJDK build was the same 25.0.4.1 that Adoptium served, without
+  adding Adoptium's apt repo to nomaduntu. Java now updates with the rest of
+  the host's packages instead of to Adoptium's latest 25.x on each fresh
+  node. The leftover `/opt/nomad/temurin-jdk` on each amd64 node is unused
+  and safe to delete.
+
 ### 2026-09-30
 
 - **`start.sh`'s `cleanup()` trap now preserves the real exit code**, instead
@@ -403,6 +419,15 @@ Newest entries first, grouped by job.
 - **`eula.txt` rendered fresh via a plain `template` block on every start.**
   Its content is static (`eula=true`), so there's nothing to lose by not
   persisting it.
+
+## valheim
+
+### 2026-10-02
+
+- **Constrained to Nomadable's `game_servers` group** (euler/kepler) via
+  `meta.inventory_groups`, alongside the existing `amd64` constraint, so
+  game servers stay off the other amd64 nodes. Already running on kepler,
+  so this was an in-place update.
 
 ## jerry
 
