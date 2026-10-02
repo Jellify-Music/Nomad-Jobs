@@ -11,9 +11,12 @@ Maestro tests. A `system` job: one runner on every node in Nomadable's
   inventory groups as node meta `inventory_groups`; this job constrains on it
   containing `github_runners`. Adding or removing a runner host is an
   inventory change in Nomadable, not a change here.
-- **Runner binary** — downloaded by the `artifact` block at
-  `local.runner_version` (tracked by Renovate) into the allocation. Nothing
-  is installed or registered by hand on the host.
+- **Runner binary** — pre-warmed by Nomadable at
+  `/opt/actions-runner/current` (`github_runner_actions_runner_version`,
+  tracked by Renovate there). `start.sh` copies it into the allocation, so
+  the runner's self-updates stay in the allocation and Ansible can prune old
+  versions under a running runner. Nothing is installed or registered by
+  hand on the host.
 - **Registration** — `start.sh` loops forever: it asks GitHub for a
   [JIT runner config](https://docs.github.com/en/rest/actions/self-hosted-runners#create-configuration-for-a-just-in-time-runner-for-a-repository)
   and runs the runner with it. A JIT runner is ephemeral — it takes exactly
@@ -27,7 +30,8 @@ Maestro tests. A `system` job: one runner on every node in Nomadable's
 
 | Path | What | Lifetime |
 |---|---|---|
-| `<alloc>/actions-runner/local/runner/` | Runner binary, `_work` | `_work` wiped per job; the rest goes with the allocation |
+| `/opt/actions-runner/current` | Pre-warmed runner binary (Nomadable) | Replaced on each version bump |
+| `<alloc>/actions-runner/local/runner/` | This allocation's copy of the runner, `_work` | `_work` wiped per job; the rest goes with the allocation |
 | `/opt/github-actions/home` | The runner's `HOME`: `~/.gradle`, `~/.android/avd`, bun's install cache | Persistent. Gradle prunes its own caches; bun's cache is cleared once it passes `BUN_CACHE_MAX_GB` (10) |
 | `/opt/github-actions/toolcache` | `actions/setup-*` downloads (`AGENT_TOOLSDIRECTORY`) | Persistent |
 
@@ -40,6 +44,7 @@ applied by Nomadintosh's generic roles. This job hardcodes their paths in its
 
 | Tool | Path in `env` | Version owned by |
 |---|---|---|
+| actions/runner | `RUNNER_DIST` (`/opt/actions-runner/current`) | `github_runner_actions_runner_version` there |
 | bun | `/opt/homebrew/bin/bun` (on `PATH`) | `github_runner_bun_version` there — workflows don't use `setup-bun` |
 | Maestro | `/opt/maestro/current/bin` | `github_runner_maestro_version` there |
 | JDK 17 | `JAVA_HOME` | `openjdk@17` (Nomadintosh `android_sdk` role) |
@@ -59,9 +64,11 @@ The allocation stays pending until the key exists.
   `distinct_hosts` constraint, so both allocations could land on one host;
   they only ever spread because `cpu = 16` against the Macs' odd 28 MHz
   fingerprint left room for exactly one per node.
-- **No `artifact` checksum** — Renovate can bump `runner_version` but can't
-  recompute a checksum, so a pinned one would break every bump PR. The
-  download is over HTTPS from GitHub's release assets.
+- **No `artifact` block** — the runner tarball holds 4097 files, one over
+  go-getter's decompression limit (`tar archive contains too many files:
+  4097 > 4096`). Raising `decompression_file_count_limit` in every client's
+  config would work too, but pre-warming also saves a ~200 MB download on
+  every allocation start.
 - **`raw_exec`** — the runner needs the host's real toolchain, emulator and
   Hypervisor.framework access.
 - **`cpu = 16` / `memory = 8192`** — unchanged from the job as it ran before
