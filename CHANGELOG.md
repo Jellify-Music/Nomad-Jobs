@@ -417,11 +417,14 @@ an entry here rather than inline comments, per the convention above.
 - **Rewritten: runners are now fully managed by this job.** Previously the
   runner was downloaded and registered by hand on each host
   (`/opt/github-actions`, a persistent registration named after the host)
-  and Nomad only started its `run.sh`. Now the `artifact` block downloads
-  the runner at a Renovate-tracked `runner_version`, and `start.sh` loops
-  over single-use [JIT registrations](https://docs.github.com/en/rest/actions/self-hosted-runners#create-configuration-for-a-just-in-time-runner-for-a-repository),
+  and Nomad only started its `run.sh`. Now Nomadable pre-warms the runner
+  at `/opt/actions-runner/current` (Renovate-tracked there), and `start.sh`
+  copies it into the allocation and loops over single-use [JIT registrations](https://docs.github.com/en/rest/actions/self-hosted-runners#create-configuration-for-a-just-in-time-runner-for-a-repository),
   using a PAT from Consul KV (`jellify/actions-runner/GITHUB_PAT`). The
   `_work` folder is wiped before every job.
+- **Why the runner isn't an `artifact`:** the first deploy of this rewrite
+  downloaded it with one, and every allocation failed with `tar archive
+  contains too many files: 4097 > 4096` (go-getter's decompression limit).
 - **`service` with `count = 2` → `system` constrained to
   `meta.inventory_groups` containing `github_runners`.** Prompted by hopper
   silently having no runner: its `raw_exec` driver wasn't healthy when

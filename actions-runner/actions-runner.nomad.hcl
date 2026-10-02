@@ -1,8 +1,3 @@
-locals {
-  # renovate: datasource=github-releases depName=actions/runner extractVersion=^v(?<version>.+)$
-  runner_version = "2.337.0"
-}
-
 job "actions-runner" {
   datacenters = ["jellify"]
 
@@ -37,11 +32,6 @@ job "actions-runner" {
     task "actions-runner" {
       driver = "raw_exec"
 
-      artifact {
-        source      = "https://github.com/actions/runner/releases/download/v${local.runner_version}/actions-runner-osx-arm64-${local.runner_version}.tar.gz"
-        destination = "local/runner"
-      }
-
       # Fine-grained PAT (Jellify-Music/App, Administration: read & write),
       # only used to mint single-use JIT runner configs. start.sh reads it
       # once and deletes the file, so workflow steps can't read it.
@@ -65,7 +55,16 @@ set -euo pipefail
 pat="$(tr -d '[:space:]' < "$NOMAD_SECRETS_DIR/github_pat")"
 rm -f "$NOMAD_SECRETS_DIR/github_pat"
 
+# The runner binary is pre-warmed by Nomadable (its tarball has more files
+# than Nomad's artifact getter allows). Each allocation gets its own copy:
+# the runner self-updates in place, and Ansible prunes old versions.
+if [ ! -x "$RUNNER_DIST/run.sh" ]; then
+  echo "no runner at $RUNNER_DIST - run Nomadable against this host" >&2
+  exit 1
+fi
 runner_dir="$NOMAD_TASK_DIR/runner"
+rm -rf "$runner_dir"
+cp -R "$RUNNER_DIST/" "$runner_dir"
 mkdir -p "$HOME" "$AGENT_TOOLSDIRECTORY"
 
 child=""
@@ -113,6 +112,7 @@ EOF
       env {
         GITHUB_REPOSITORY = "Jellify-Music/App"
         RUNNER_LABELS     = "self-hosted,macOS,ARM64"
+        RUNNER_DIST       = "/opt/actions-runner/current"
 
         # Everything CI writes outside the allocation lands under
         # /opt/github-actions instead of violet's real home: ~/.gradle,
