@@ -126,7 +126,7 @@ EOF
         JAVA_HOME        = "/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
         ANDROID_HOME     = "/Users/violet/Library/Android/sdk"
         ANDROID_SDK_ROOT = "/Users/violet/Library/Android/sdk"
-        PATH             = "/opt/maestro/current/bin:/opt/homebrew/opt/node@24/bin:/Users/violet/Library/Android/sdk/platform-tools:/Users/violet/Library/Android/sdk/emulator:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
+        PATH             = "/opt/maestro/current/bin:/opt/homebrew/opt/node@24/bin:/opt/homebrew/opt/ruby@4.0/bin:/Users/violet/Library/Android/sdk/platform-tools:/Users/violet/Library/Android/sdk/emulator:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
 
         MAESTRO_CLI_NO_ANALYTICS                   = "1"
         MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED = "true"

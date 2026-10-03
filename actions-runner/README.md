@@ -48,6 +48,7 @@ applied by Nomadintosh's generic roles. This job hardcodes their paths in its
 | bun | `/opt/homebrew/bin/bun` (on `PATH`) | `github_runner_bun_version` there — workflows don't use `setup-bun` |
 | Maestro | `/opt/maestro/current/bin` | `github_runner_maestro_version` there |
 | Node 24 | `/opt/homebrew/opt/node@24/bin` (keg-only, so on `PATH` explicitly) | `node@24` Homebrew formula, added through Semaphore's `additional_homebrew_packages__*` variables — workflows don't use `setup-node` |
+| Ruby 4.0 | `/opt/homebrew/opt/ruby@4.0/bin` (on `PATH` explicitly) | `ruby@4.0` Homebrew formula there, kept in sync with the App's `ios/.ruby-version` — the App's `install-pods` action skips `setup-ruby` here |
 | JDK 17 | `JAVA_HOME` | `openjdk@17` (Nomadintosh `android_sdk` role) |
 | Android SDK | `ANDROID_HOME` / `ANDROID_SDK_ROOT` | `android_sdk_packages` there |
 
