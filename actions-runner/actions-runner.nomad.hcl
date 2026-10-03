@@ -108,7 +108,8 @@ EOF
 
       # Paths provisioned by Nomadable's github_runners group_vars (via
       # Nomadintosh's homebrew_packages / release_archives / android_sdk
-      # roles) - keep in sync with those.
+      # roles) - keep in sync with those. node@24 comes from Semaphore's
+      # additional_homebrew_packages__* variables instead.
       env {
         GITHUB_REPOSITORY = "Jellify-Music/App"
         RUNNER_LABELS     = "self-hosted,macOS,ARM64"
@@ -125,7 +126,7 @@ EOF
         JAVA_HOME        = "/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
         ANDROID_HOME     = "/Users/violet/Library/Android/sdk"
         ANDROID_SDK_ROOT = "/Users/violet/Library/Android/sdk"
-        PATH             = "/opt/maestro/current/bin:/Users/violet/Library/Android/sdk/platform-tools:/Users/violet/Library/Android/sdk/emulator:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
+        PATH             = "/opt/maestro/current/bin:/opt/homebrew/opt/node@24/bin:/Users/violet/Library/Android/sdk/platform-tools:/Users/violet/Library/Android/sdk/emulator:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
 
         MAESTRO_CLI_NO_ANALYTICS                   = "1"
         MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED = "true"
