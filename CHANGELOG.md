@@ -439,6 +439,13 @@ an entry here rather than inline comments, per the convention above.
 
 ### 2026-10-03
 
+- **Ruby 4.0 on `PATH` (`/opt/homebrew/opt/ruby@4.0/bin`).** For the App's
+  iOS jobs (CocoaPods and fastlane through bundler) once they move to these
+  runners. The App's shared `install-pods` action uses `ruby/setup-ruby` only
+  on GitHub-hosted runners, pinned by its `ios/.ruby-version`; here the
+  version comes from Nomadable's `ruby@4.0` formula, which tracks the same
+  major.minor. The versioned opt path stays on 4.0 when Homebrew's plain
+  `ruby` moves to a newer line.
 - **Node 24 on `PATH` (`/opt/homebrew/opt/node@24/bin`).** The Android
   build needs `node` even though the App repo standardizes on bun: React
   Native's Gradle plugin bundles the JS and resolves autolinking with it.
