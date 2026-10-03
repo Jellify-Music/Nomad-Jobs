@@ -437,6 +437,16 @@ an entry here rather than inline comments, per the convention above.
 
 ## actions-runner
 
+### 2026-10-03
+
+- **Node 24 on `PATH` (`/opt/homebrew/opt/node@24/bin`).** The Android
+  build needs `node` even though the App repo standardizes on bun: React
+  Native's Gradle plugin bundles the JS and resolves autolinking with it.
+  Workflows got it from `actions/setup-node` until now; the runners now
+  have Homebrew's `node@24` instead, so `setup-node` was dropped from the
+  Maestro workflow (Jellify-Music/App#1468). `node@24` is keg-only and the
+  LTS line, so a `brew upgrade` won't move the build to a new major.
+
 ### 2026-10-02
 
 - **Rewritten: runners are now fully managed by this job.** Previously the
