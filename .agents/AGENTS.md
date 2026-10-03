@@ -40,10 +40,10 @@ is the live-ish reference — see caveat below):
 |---|---|---|
 | `galileo.jellify.app` | macOS, arm64 (Apple Silicon Mac mini) | `container`+`podman` enabled; in the `github_runners` group (runs actions-runner) |
 | `hopper.jellify.app` | macOS, arm64 | `container` enabled; in the `github_runners` group (runs actions-runner) |
-| `euler.jellify.app` | Ubuntu, amd64 | added for x86-only jobs (minecraft/valheim/bobby) |
-| `dijkstra.jellify.app` | Ubuntu, amd64 | same |
-| `fibonacci.jellify.app` | Ubuntu, amd64 | same |
-| `kepler.jellify.app` | Ubuntu, amd64 | same |
+| `euler.jellify.app` | Ubuntu, amd64 | added for x86-only jobs; in the `game_servers` group (runs minecraft/valheim) |
+| `kepler.jellify.app` | Ubuntu, amd64 | same as euler |
+| `dijkstra.jellify.app` | Ubuntu, amd64 | added for x86-only jobs (e.g. bobby, which can land on any amd64 node) |
+| `fibonacci.jellify.app` | Ubuntu, amd64 | same as dijkstra |
 
 **Caveat:** Nomadable's `inventory/hosts.yml` is checked into git but can lag
 what a job spec actually constrains to — e.g. it still shows
@@ -83,10 +83,23 @@ constraint {
 }
 ```
 
-Existing precedent in this repo: `minecraft`, `valheim`, and
-`bobby` constrain to `amd64` (native x86_64 Linux, no
-Rosetta/emulation); `actions-runner` constrains to `arm64` + `darwin`
-(needs `ANDROID_HOME`/Xcode-adjacent tooling only present on the Mac
+When a job needs host-provisioned software, target the Nomadable
+inventory group that provisions it instead, via the node meta Nomadintosh's
+and nomaduntu's `nomad` roles publish:
+
+```hcl
+constraint {
+  attribute = "${meta.inventory_groups}"
+  operator  = "set_contains"
+  value     = "game_servers"
+}
+```
+
+Existing precedent in this repo: `minecraft` and `valheim` target the
+`game_servers` group (plus `amd64` as a guard; minecraft's JRE is installed
+there by Nomadable), and `bobby` constrains to `amd64` (native x86_64 Linux,
+no Rosetta/emulation); `actions-runner` targets `github_runners` + `darwin`
+(needs the Android SDK/Maestro/JDK toolchain Nomadable installs on the Mac
 minis). `jerry` (the Discord bot) is unconstrained — it's a plain `docker`
 task with no host-specific dependency, so it can land anywhere `docker`
 driver is available.
@@ -102,7 +115,7 @@ single/double digits, not the usual Nomad MHz-scale totals — same quirk
 documented in full in `~/Workspace/nomad-jobs/.agents/AGENTS.md`'s "macOS
 CPU fingerprint" section (cosmonautical is all-macOS, so it has the fuller
 writeup and the incident that exposed it). Evidence from this repo:
-`actions-runner` (constrained to `darwin`/`arm64`, i.e. `galileo`) uses
+`actions-runner` (constrained to `github_runners`/`darwin`, i.e. `galileo`/`hopper`) uses
 `cpu = 16`, while `amd64`-constrained jobs on the Ubuntu nodes use
 normal-scale values (`minecraft`'s main task and `valheim` both use
 `cpu = 10000`). Don't copy a `cpu` value from one job to a new one without

@@ -9,7 +9,15 @@ job "valheim" {
     # and the container driver's Rosetta translation on the arm64 jellify
     # nodes (galileo/hopper) can't run SteamCMD's 32-bit bootstrap binary -
     # see kepler/fibonacci/euler/dijkstra, the x86_64 jellify nodes added
-    # specifically for jobs like this one.
+    # specifically for jobs like this one. Of those, only Nomadable's
+    # game_servers inventory group (published as node meta by nomaduntu's
+    # nomad role) runs game servers.
+    constraint {
+      attribute = "${meta.inventory_groups}"
+      operator  = "set_contains"
+      value     = "game_servers"
+    }
+
     constraint {
       attribute = "${attr.cpu.arch}"
       value     = "amd64"
