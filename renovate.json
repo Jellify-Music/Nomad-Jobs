@@ -118,7 +118,7 @@
       "matchDatasources": ["custom.modrinth"],
       "dependencyDashboardApproval": true,
       "prBodyNotes": [
-        "This manager only tracks the version number - it can't safely regenerate the pinned Modrinth download URL (the CDN path embeds a Modrinth-assigned version ID, not this version number) or recompute the sha1 `fetch-pinned-plugins` verifies against. Do **not** merge this PR as-is: use it as a signal that an update exists, then update the `fetch_pinned` call by hand the same way past entries in CHANGELOG.md were done (confirm the new release declares support for the pinned Paper game version, download it, verify/record its sha1)."
+        "This manager only tracks the version number - it can't safely regenerate the pinned Modrinth download URL (the CDN path embeds a Modrinth-assigned version ID, not this version number) or recompute the sha1 checksum pinned next to it. Do **not** merge this PR as-is: use it as a signal that an update exists, then update the entry in minecraft.nomad.hcl's `locals.artifacts` table by hand the same way past entries in CHANGELOG.md were done (confirm the new release declares support for the pinned Paper game version, download it, verify/record its sha1)."
       ]
     }
   ]

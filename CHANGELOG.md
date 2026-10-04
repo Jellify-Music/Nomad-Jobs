@@ -149,6 +149,39 @@ Newest entries first, grouped by job.
 
 ## minecraft
 
+### 2026-10-04
+
+- **Every download is now a pinned Nomad `artifact`, and the three fetch
+  prestart tasks are gone** (`fetch-paper`, `fetch-geyser-floodgate`,
+  `fetch-pinned-plugins`). All of them were hand-rolled curl + python3 +
+  shasum scripts doing what go-getter already does: fetch a URL, verify a
+  checksum, skip if already present. The job spec now has one
+  `locals.artifacts` table (destination -> URL + checksum) and a single
+  `dynamic "artifact"` block on the main `minecraft` task. The job file
+  dropped from 463 to ~330 lines, and the hosts no longer need curl/python3
+  to fetch anything.
+- **Paper, Geyser and Floodgate are pinned too, not just the Modrinth
+  plugins.** Paper is pinned to 26.2 build 129 (sha256, from Fill's
+  content-addressed download URL), and Geyser 2.11.3 build 1248 / Floodgate
+  2.2.5 build 141 are pinned to exact GeyserMC builds (sha256). Previously
+  `fetch-paper` resolved the build from the `paper_version` Nomad Variable,
+  and Geyser/Floodgate tracked latest on every restart, so a restart could
+  quietly change the server. Every bump is now a reviewed diff instead.
+  Floodgate's Spigot build isn't published on Modrinth (only Fabric/NeoForge),
+  so both GeyserMC jars come from GeyserMC's own API.
+  Trade-off: Bedrock clients auto-update, and a Bedrock protocol change
+  locks Bedrock players out until Geyser is bumped, so Geyser bumps need
+  prompt merging.
+- **Artifacts live on the main task, not a prestart task, on purpose.**
+  Nomad fetches a task's artifacts when that task starts, which is after
+  `seed-data`'s restore from NFS, so fresh jars always overwrite restored
+  copies. Every artifact sets `mode = "file"` and `archive = "false"`;
+  otherwise go-getter would unpack the `.zip` datapacks into directories.
+  `../alloc/minecraft-data/...` as a destination was confirmed accepted by
+  `nomad job validate` (it stays inside the allocation directory).
+- The `paper_version` key in the `nomad/jobs/minecraft` Nomad Variable is
+  unused now and can be deleted once this is deployed.
+
 ### 2026-10-02
 
 - **Moved to Nomadable's `game_servers` group, Java now comes from apt.**

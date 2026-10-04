@@ -118,7 +118,7 @@ built-in `terraform` manager already scans any `*.tf` file for
 
 - **The 8 Modrinth-pinned plugins/datapacks** in
   [`minecraft/minecraft.nomad.hcl`](minecraft/minecraft.nomad.hcl)'s
-  `fetch-pinned-plugins` task (Chunky, AuraSkills, ViaVersion, ViaBackwards,
+  `locals.artifacts` table (Chunky, AuraSkills, ViaVersion, ViaBackwards,
   BlueMap, AutoTreeChop, Terralith, Tectonic) — **version number only**, via
   a `customDatasources.modrinth` datasource that queries each project's
   Modrinth releases filtered to `loaders=["paper"]` and the pinned game
@@ -137,9 +137,9 @@ built-in `terraform` manager already scans any `*.tf` file for
   declares support for game version `26.2`, download it, verify/record its
   sha1.
 
-`paper.jar` and Geyser/Floodgate aren't pinned at all — those tasks already
-resolve and verify the latest build at every deploy, so there's nothing for
-Renovate to track there.
+`paper.jar` and Geyser/Floodgate are pinned in the same table (exact build +
+sha256), but Renovate doesn't track them yet — check Fill / GeyserMC by hand
+for now.
 
 Onboarding step (one-time, not something I can do from here): install the
 [Renovate GitHub App](https://github.com/apps/renovate) on this repo. Once

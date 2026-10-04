@@ -1,6 +1,60 @@
 # See ../CHANGELOG.md for the "why" behind anything here - this file stays
 # lean, history/rationale lives there instead.
 
+locals {
+  user_agent = "cosmonautical-nomad-jobs/1.0 (violet@cosmonautical.cloud)"
+
+  # Everything the server downloads, keyed by destination path relative to
+  # the alloc's minecraft-data dir. Every entry is an exact build + checksum -
+  # bumps arrive as PRs, never as a silent change on restart.
+  artifacts = {
+    "paper.jar" = {
+      url      = "https://fill-data.papermc.io/v1/objects/b1d8f6bfa1b6101fa8e947b53041cb3bdf5540e7b83b6547ca19ba7edefeb083/paper-26.2-129.jar"
+      checksum = "sha256:b1d8f6bfa1b6101fa8e947b53041cb3bdf5540e7b83b6547ca19ba7edefeb083"
+    }
+    "plugins/Geyser-Spigot.jar" = {
+      url      = "https://download.geysermc.org/v2/projects/geyser/versions/2.11.3/builds/1248/downloads/spigot"
+      checksum = "sha256:20f14813931758aa2e951aae3b5d333f7212fa9b059afffc6a782a2eb3bb2a81"
+    }
+    "plugins/floodgate-spigot.jar" = {
+      url      = "https://download.geysermc.org/v2/projects/floodgate/versions/2.2.5/builds/141/downloads/spigot"
+      checksum = "sha256:21570aff9ce17d6983928e8552777760e1ede5050026b04c686b0ae112e6fd7e"
+    }
+    "plugins/ViaVersion.jar" = {
+      url      = "https://cdn.modrinth.com/data/P1OZGk5p/versions/FaishMnD/ViaVersion-5.12.0.jar"
+      checksum = "sha1:7486c37c91b3cc892d37ee9a05470bf6ec49a59f"
+    }
+    "plugins/ViaBackwards.jar" = {
+      url      = "https://cdn.modrinth.com/data/NpvuJQoq/versions/SxGhdsPK/ViaBackwards-5.12.0.jar"
+      checksum = "sha1:3603c85784c41387c56ec76c016c21e0a1ae303a"
+    }
+    "plugins/Chunky.jar" = {
+      url      = "https://cdn.modrinth.com/data/fALzjamp/versions/MdY6JATr/Chunky-Bukkit-1.5.3.jar"
+      checksum = "sha1:7ff47ee3afec89a1725e6eef393f373c549eff3b"
+    }
+    "plugins/AuraSkills.jar" = {
+      url      = "https://cdn.modrinth.com/data/uDdZAVls/versions/9rSJ3THD/AuraSkills-2.4.0.jar"
+      checksum = "sha1:f8c6c4a73bf853755108578625cf5ca212957b53"
+    }
+    "plugins/BlueMap.jar" = {
+      url      = "https://cdn.modrinth.com/data/swbUV1cr/versions/pILlMIlN/bluemap-5.28-paper.jar"
+      checksum = "sha1:6e9d1bb29a43aa24108b5cb4b61de6efec1f521a"
+    }
+    "plugins/AutoTreeChop.jar" = {
+      url      = "https://cdn.modrinth.com/data/pwCm0TtE/versions/o9SdPqFP/AutoTreeChop-1.7.5.jar"
+      checksum = "sha1:5b2e013994950afadd3f22b0242dc0500da79c07"
+    }
+    "world/datapacks/Terralith.zip" = {
+      url      = "https://cdn.modrinth.com/data/8oi3bsk5/versions/CzijfXJQ/Terralith_26.2_v2.6.4.zip"
+      checksum = "sha1:96ccd25be9ba5240ebe8150cc29240aca781f0e1"
+    }
+    "world/datapacks/Tectonic.zip" = {
+      url      = "https://cdn.modrinth.com/data/lWDHr9jE/versions/CmzMQNDL/tectonic-datapack-3.0.25.zip"
+      checksum = "sha1:790390ed8f5032bb0e9fc3bd7aa7017d838cf273"
+    }
+  }
+}
+
 job "minecraft" {
   datacenters = ["jellify"]
   type        = "service"
@@ -120,232 +174,29 @@ job "minecraft" {
       }
     }
 
-    task "fetch-paper" {
-      driver = "raw_exec"
-
-      lifecycle {
-        hook    = "prestart"
-        sidecar = false
-      }
-
-      template {
-        data        = <<-EOT
-        {{ with nomadVar "nomad/jobs/minecraft" }}PAPER_VERSION={{ .paper_version }}{{ end }}
-        EOT
-        destination = "secrets/paper-version.env"
-        env         = true
-      }
-
-      template {
-        data        = <<-EOT
-        #!/bin/sh
-        set -eu
-
-        version="$${PAPER_VERSION:-latest}"
-        ua="cosmonautical-nomad-jobs/1.0 (violet@cosmonautical.cloud)"
-        api="https://fill.papermc.io/v3"
-        data_dir="$NOMAD_ALLOC_DIR/minecraft-data"
-
-        if [ "$version" = "latest" ]; then
-          candidates=$(curl -sf -H "User-Agent: $ua" "$api/projects/paper" | python3 -c 'import json,sys
-        d=json.load(sys.stdin, strict=False)
-        for lst in d["versions"].values():
-            for v in lst:
-                print(v)')
-        else
-          candidates="$version"
-        fi
-
-        build=""
-        resolved_version=""
-        for v in $candidates; do
-          b=$(curl -sf -H "User-Agent: $ua" "$api/projects/paper/versions/$v/builds/latest") || continue
-          channel=$(echo "$b" | python3 -c 'import json,sys
-        try:
-            print(json.load(sys.stdin, strict=False)["channel"])
-        except Exception:
-            print("")')
-          if [ "$version" != "latest" ] || [ "$channel" = "STABLE" ]; then
-            build="$b"
-            resolved_version="$v"
-            break
-          fi
-        done
-
-        if [ -z "$build" ]; then
-          echo "no suitable Paper build found for paper_version=$version" >&2
-          exit 1
-        fi
-
-        echo "Resolved Paper version: $resolved_version"
-
-        url=$(echo "$build" | python3 -c 'import json, sys; print(json.load(sys.stdin, strict=False)["downloads"]["server:default"]["url"])')
-        sha256=$(echo "$build" | python3 -c 'import json, sys; print(json.load(sys.stdin, strict=False)["downloads"]["server:default"]["checksums"]["sha256"])')
-
-        tmp="$data_dir/paper.jar.tmp"
-        curl -sfL -H "User-Agent: $ua" -o "$tmp" "$url"
-        echo "$sha256  $tmp" | shasum -a 256 -c -
-        mv "$tmp" "$data_dir/paper.jar"
-        echo "$resolved_version" > "$data_dir/.paper-version"
-        EOT
-        destination = "local/fetch-paper.sh"
-        perms       = "755"
-      }
-
-      config {
-        command = "${NOMAD_TASK_DIR}/fetch-paper.sh"
-      }
-
-      resources {
-        cpu    = 2
-        memory = 256
-      }
-    }
-
-    task "fetch-geyser-floodgate" {
-      driver = "raw_exec"
-
-      lifecycle {
-        hook    = "prestart"
-        sidecar = false
-      }
-
-      template {
-        data        = <<-EOT
-        #!/bin/sh
-        set -eu
-
-        ua="cosmonautical-nomad-jobs/1.0 (violet@cosmonautical.cloud)"
-        plugins_dir="$NOMAD_ALLOC_DIR/minecraft-data/plugins"
-        mkdir -p "$plugins_dir"
-
-        fetch_latest() {
-          project="$1"
-          out_name="$2"
-
-          versions=$(curl -sfL -H "User-Agent: $ua" "https://download.geysermc.org/v2/projects/$project")
-          version=$(echo "$versions" | python3 -c 'import json, sys; print(json.load(sys.stdin, strict=False)["versions"][-1])')
-
-          build=$(curl -sfL -H "User-Agent: $ua" "https://download.geysermc.org/v2/projects/$project/versions/$version/builds/latest")
-          build_id=$(echo "$build" | python3 -c 'import json, sys; print(json.load(sys.stdin, strict=False)["build"])')
-          sha256=$(echo "$build" | python3 -c 'import json, sys; print(json.load(sys.stdin, strict=False)["downloads"]["spigot"]["sha256"])')
-
-          out="$plugins_dir/$out_name"
-          curl -sfL -H "User-Agent: $ua" -o "$out" \
-            "https://download.geysermc.org/v2/projects/$project/versions/$version/builds/$build_id/downloads/spigot"
-          echo "$sha256  $out" | shasum -a 256 -c -
-          echo "$project $version build $build_id -> $out_name"
-        }
-
-        fetch_latest geyser Geyser-Spigot.jar
-        fetch_latest floodgate floodgate-spigot.jar
-        EOT
-        destination = "local/fetch-geyser-floodgate.sh"
-        perms       = "755"
-      }
-
-      config {
-        command = "${NOMAD_TASK_DIR}/fetch-geyser-floodgate.sh"
-      }
-
-      resources {
-        cpu    = 2
-        memory = 256
-      }
-    }
-
-    task "fetch-pinned-plugins" {
-      driver = "raw_exec"
-
-      lifecycle {
-        hook    = "prestart"
-        sidecar = false
-      }
-
-      template {
-        data        = <<-EOT
-        #!/bin/sh
-        set -eu
-
-        ua="cosmonautical-nomad-jobs/1.0 (violet@cosmonautical.cloud)"
-        data_dir="$NOMAD_ALLOC_DIR/minecraft-data"
-
-        fetch_pinned() {
-          url="$1"
-          sha1="$2"
-          out="$3"
-
-          if [ -f "$out" ] && echo "$sha1  $out" | shasum -a 1 -c - >/dev/null 2>&1; then
-            echo "$out already present and verified"
-            return 0
-          fi
-
-          tmp="$out.tmp"
-          curl -sfL -H "User-Agent: $ua" -o "$tmp" "$url"
-          echo "$sha1  $tmp" | shasum -a 1 -c -
-          mv "$tmp" "$out"
-          echo "fetched $out"
-        }
-
-        fetch_pinned \
-          "https://cdn.modrinth.com/data/8oi3bsk5/versions/CzijfXJQ/Terralith_26.2_v2.6.4.zip" \
-          "96ccd25be9ba5240ebe8150cc29240aca781f0e1" \
-          "$data_dir/world/datapacks/Terralith.zip"
-
-        fetch_pinned \
-          "https://cdn.modrinth.com/data/lWDHr9jE/versions/CmzMQNDL/tectonic-datapack-3.0.25.zip" \
-          "790390ed8f5032bb0e9fc3bd7aa7017d838cf273" \
-          "$data_dir/world/datapacks/Tectonic.zip"
-
-        fetch_pinned \
-          "https://cdn.modrinth.com/data/fALzjamp/versions/MdY6JATr/Chunky-Bukkit-1.5.3.jar" \
-          "7ff47ee3afec89a1725e6eef393f373c549eff3b" \
-          "$data_dir/plugins/Chunky.jar"
-
-        fetch_pinned \
-          "https://cdn.modrinth.com/data/uDdZAVls/versions/9rSJ3THD/AuraSkills-2.4.0.jar" \
-          "f8c6c4a73bf853755108578625cf5ca212957b53" \
-          "$data_dir/plugins/AuraSkills.jar"
-
-        fetch_pinned \
-          "https://cdn.modrinth.com/data/P1OZGk5p/versions/FaishMnD/ViaVersion-5.12.0.jar" \
-          "7486c37c91b3cc892d37ee9a05470bf6ec49a59f" \
-          "$data_dir/plugins/ViaVersion.jar"
-
-        fetch_pinned \
-          "https://cdn.modrinth.com/data/NpvuJQoq/versions/SxGhdsPK/ViaBackwards-5.12.0.jar" \
-          "3603c85784c41387c56ec76c016c21e0a1ae303a" \
-          "$data_dir/plugins/ViaBackwards.jar"
-
-        fetch_pinned \
-          "https://cdn.modrinth.com/data/swbUV1cr/versions/pILlMIlN/bluemap-5.28-paper.jar" \
-          "6e9d1bb29a43aa24108b5cb4b61de6efec1f521a" \
-          "$data_dir/plugins/BlueMap.jar"
-
-        fetch_pinned \
-          "https://cdn.modrinth.com/data/pwCm0TtE/versions/o9SdPqFP/AutoTreeChop-1.7.5.jar" \
-          "5b2e013994950afadd3f22b0242dc0500da79c07" \
-          "$data_dir/plugins/AutoTreeChop.jar"
-        EOT
-        destination = "local/fetch-pinned-plugins.sh"
-        perms       = "755"
-      }
-
-      config {
-        command = "${NOMAD_TASK_DIR}/fetch-pinned-plugins.sh"
-      }
-
-      resources {
-        cpu    = 2
-        memory = 256
-      }
-    }
-
     task "minecraft" {
       driver = "raw_exec"
 
       env {
         PATH = "/usr/bin:/bin:/usr/sbin:/sbin"
+      }
+
+      # Fetched by the Nomad client when this task starts, i.e. after
+      # seed-data's restore from NFS, so fresh jars overwrite restored ones.
+      dynamic "artifact" {
+        for_each = local.artifacts
+        content {
+          source      = artifact.value.url
+          destination = "../alloc/minecraft-data/${artifact.key}"
+          mode        = "file"
+          options {
+            checksum = artifact.value.checksum
+            archive  = "false"
+          }
+          headers {
+            User-Agent = local.user_agent
+          }
+        }
       }
 
       template {
