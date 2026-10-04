@@ -26,3 +26,8 @@ silently skipped there.
   README, has a matching `main.tf` resource (labeled after the job ID, not
   the directory), has no hardcoded secret where a Consul KV reference
   belongs, and documents every `{{ key "..." }}` it references.
+- **`test_minecraft_artifacts.py`** - offline checks for
+  `../.github/scripts/minecraft_artifacts.py` (the Minecraft update
+  workflow's script): every `locals.artifacts` entry parses, comes from an
+  upstream the script can track, and has a README row it can bump; plus the
+  HCL/README rewrite logic. No network access.

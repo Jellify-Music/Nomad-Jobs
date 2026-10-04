@@ -116,30 +116,16 @@ built-in `terraform` manager already scans any `*.tf` file for
 - **The `hashicorp/nomad` Terraform provider** version constraint in
   [`versions.tf`](versions.tf).
 
-- **The 8 Modrinth-pinned plugins/datapacks** in
-  [`minecraft/minecraft.nomad.hcl`](minecraft/minecraft.nomad.hcl)'s
-  `fetch-pinned-plugins` task (Chunky, AuraSkills, ViaVersion, ViaBackwards,
-  BlueMap, AutoTreeChop, Terralith, Tectonic) — **version number only**, via
-  a `customDatasources.modrinth` datasource that queries each project's
-  Modrinth releases filtered to `loaders=["paper"]` and the pinned game
-  version (`26.2`), same filter used by hand so far. This is tracking, not
-  auto-fixing: each of these pins a Modrinth CDN URL *and* a sha1 together,
-  and a regex manager can only swap in a new version string in place — it
-  can't regenerate the download URL (the CDN path embeds a Modrinth-assigned
-  version ID, not the version number) or recompute the hash that goes with
-  it. So this packageRule sets `dependencyDashboardApproval: true`: instead
-  of opening a PR straight away, a new compatible version just shows up as a
-  pending item on the Dependency Dashboard issue. **Don't approve it from
-  there** — the resulting PR would only be a partial, broken edit (new
-  version number, stale URL/hash). Treat the dashboard entry as the same
-  "is there an update" nudge as before, then do the actual update by hand
-  the way every past entry in `CHANGELOG.md` was done: confirm the release
-  declares support for game version `26.2`, download it, verify/record its
-  sha1.
-
-`paper.jar` and Geyser/Floodgate aren't pinned at all — those tasks already
-resolve and verify the latest build at every deploy, so there's nothing for
-Renovate to track there.
+Minecraft's downloads (Paper, Geyser/Floodgate and the Modrinth
+plugins/datapacks pinned in
+[`minecraft/minecraft.nomad.hcl`](minecraft/minecraft.nomad.hcl)'s
+`locals.artifacts` table) aren't tracked by Renovate: each entry pins a URL
+*and* a checksum together, and a regex manager can only swap a version
+string in place — it can't regenerate a Modrinth CDN URL (the path embeds a
+Modrinth-assigned version ID) or recompute the hash. Those are handled by
+[`.github/workflows/minecraft-updates.yml`](.github/workflows/minecraft-updates.yml)
+instead, which runs daily and opens one complete, mergeable PR per update —
+see [`minecraft/README.md`](minecraft/README.md#updates).
 
 Onboarding step (one-time, not something I can do from here): install the
 [Renovate GitHub App](https://github.com/apps/renovate) on this repo. Once

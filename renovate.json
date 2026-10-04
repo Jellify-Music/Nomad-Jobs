@@ -4,15 +4,6 @@
   "dependencyDashboard": true,
   "schedule": ["before 9am on monday"],
   "pinDigests": true,
-  "customDatasources": {
-    "modrinth": {
-      "defaultRegistryUrlTemplate": "https://api.modrinth.com/v2/project/{{packageName}}/version?loaders=[\"paper\"]&game_versions=[\"26.2\"]",
-      "format": "json",
-      "transformTemplates": [
-        "{\"releases\": $map($, function($v) { {\"version\": $v.version_number} })}"
-      ]
-    }
-  },
   "customManagers": [
     {
       "customType": "regex",
@@ -31,95 +22,6 @@
         "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+extractVersion=(?<extractVersion>\\S+))?\\s*\\n[^=\\n]+=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "extractVersionTemplate": "{{#if extractVersion}}{{{extractVersion}}}{{else}}^v?(?<version>.+)${{/if}}"
-    },
-    {
-      "customType": "regex",
-      "description": "Terralith datapack version, tracked against Modrinth releases for the pinned Paper game version - see README, PRs from this manager need manual follow-up",
-      "managerFilePatterns": ["\\.nomad\\.hcl$"],
-      "matchStrings": ["Terralith_26\\.2_v(?<currentValue>[0-9.]+)\\.zip"],
-      "depNameTemplate": "Terralith",
-      "packageNameTemplate": "terralith",
-      "datasourceTemplate": "custom.modrinth",
-      "versioningTemplate": "semver-coerced"
-    },
-    {
-      "customType": "regex",
-      "description": "Tectonic datapack version, tracked against Modrinth releases for the pinned Paper game version - see README, PRs from this manager need manual follow-up",
-      "managerFilePatterns": ["\\.nomad\\.hcl$"],
-      "matchStrings": ["tectonic-datapack-(?<currentValue>[0-9.]+)\\.zip"],
-      "depNameTemplate": "Tectonic",
-      "packageNameTemplate": "tectonic",
-      "datasourceTemplate": "custom.modrinth",
-      "versioningTemplate": "semver-coerced"
-    },
-    {
-      "customType": "regex",
-      "description": "Chunky plugin version, tracked against Modrinth releases for the pinned Paper game version - see README, PRs from this manager need manual follow-up",
-      "managerFilePatterns": ["\\.nomad\\.hcl$"],
-      "matchStrings": ["Chunky-Bukkit-(?<currentValue>[0-9.]+)\\.jar"],
-      "depNameTemplate": "Chunky",
-      "packageNameTemplate": "chunky",
-      "datasourceTemplate": "custom.modrinth",
-      "versioningTemplate": "semver-coerced"
-    },
-    {
-      "customType": "regex",
-      "description": "AuraSkills plugin version, tracked against Modrinth releases for the pinned Paper game version - see README, PRs from this manager need manual follow-up",
-      "managerFilePatterns": ["\\.nomad\\.hcl$"],
-      "matchStrings": ["AuraSkills-(?<currentValue>[0-9.]+)\\.jar"],
-      "depNameTemplate": "AuraSkills",
-      "packageNameTemplate": "auraskills",
-      "datasourceTemplate": "custom.modrinth",
-      "versioningTemplate": "semver-coerced"
-    },
-    {
-      "customType": "regex",
-      "description": "ViaVersion plugin version, tracked against Modrinth releases for the pinned Paper game version - see README, PRs from this manager need manual follow-up",
-      "managerFilePatterns": ["\\.nomad\\.hcl$"],
-      "matchStrings": ["ViaVersion-(?<currentValue>[0-9.]+)\\.jar"],
-      "depNameTemplate": "ViaVersion",
-      "packageNameTemplate": "viaversion",
-      "datasourceTemplate": "custom.modrinth",
-      "versioningTemplate": "semver-coerced"
-    },
-    {
-      "customType": "regex",
-      "description": "ViaBackwards plugin version, tracked against Modrinth releases for the pinned Paper game version - see README, PRs from this manager need manual follow-up",
-      "managerFilePatterns": ["\\.nomad\\.hcl$"],
-      "matchStrings": ["ViaBackwards-(?<currentValue>[0-9.]+)\\.jar"],
-      "depNameTemplate": "ViaBackwards",
-      "packageNameTemplate": "viabackwards",
-      "datasourceTemplate": "custom.modrinth",
-      "versioningTemplate": "semver-coerced"
-    },
-    {
-      "customType": "regex",
-      "description": "BlueMap plugin version, tracked against Modrinth releases for the pinned Paper game version - see README, PRs from this manager need manual follow-up",
-      "managerFilePatterns": ["\\.nomad\\.hcl$"],
-      "matchStrings": ["bluemap-(?<currentValue>[0-9.]+)-paper\\.jar"],
-      "depNameTemplate": "BlueMap",
-      "packageNameTemplate": "bluemap",
-      "datasourceTemplate": "custom.modrinth",
-      "versioningTemplate": "semver-coerced"
-    },
-    {
-      "customType": "regex",
-      "description": "AutoTreeChop plugin version, tracked against Modrinth releases for the pinned Paper game version - see README, PRs from this manager need manual follow-up",
-      "managerFilePatterns": ["\\.nomad\\.hcl$"],
-      "matchStrings": ["AutoTreeChop-(?<currentValue>[0-9.]+)\\.jar"],
-      "depNameTemplate": "AutoTreeChop",
-      "packageNameTemplate": "autotreechop",
-      "datasourceTemplate": "custom.modrinth",
-      "versioningTemplate": "semver-coerced"
-    }
-  ],
-  "packageRules": [
-    {
-      "matchDatasources": ["custom.modrinth"],
-      "dependencyDashboardApproval": true,
-      "prBodyNotes": [
-        "This manager only tracks the version number - it can't safely regenerate the pinned Modrinth download URL (the CDN path embeds a Modrinth-assigned version ID, not this version number) or recompute the sha1 `fetch-pinned-plugins` verifies against. Do **not** merge this PR as-is: use it as a signal that an update exists, then update the `fetch_pinned` call by hand the same way past entries in CHANGELOG.md were done (confirm the new release declares support for the pinned Paper game version, download it, verify/record its sha1)."
-      ]
     }
   ]
 }
