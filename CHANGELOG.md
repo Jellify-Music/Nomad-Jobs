@@ -437,6 +437,16 @@ an entry here rather than inline comments, per the convention above.
 
 ## actions-runner
 
+### 2026-10-04
+
+- **UTF-8 locale (`LANG`/`LC_ALL` = `en_US.UTF-8`).** Nomad starts the
+  runner with no locale, and CocoaPods then fails `pod install` with
+  `Unicode Normalization not appropriate for ASCII-8BIT`. That broke the
+  App's first `maestro-ios` run on these runners (Jellify-Music/App#1443).
+  The App's `install-pods` action now sets the locale itself too, but other
+  tools (Ruby, Python, `xcodebuild` output) expect one as well, and
+  GitHub-hosted macOS runners always have one.
+
 ### 2026-10-03
 
 - **Ruby 4.0 on `PATH` (`/opt/homebrew/opt/ruby@4.0/bin`).** For the App's

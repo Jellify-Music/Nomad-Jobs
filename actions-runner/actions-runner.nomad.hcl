@@ -123,6 +123,10 @@ EOF
         RUNNER_TOOL_CACHE    = "/opt/github-actions/toolcache"
         BUN_CACHE_MAX_GB     = "10"
 
+        # Nomad starts tasks without a locale; CocoaPods needs UTF-8.
+        LANG   = "en_US.UTF-8"
+        LC_ALL = "en_US.UTF-8"
+
         JAVA_HOME        = "/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
         ANDROID_HOME     = "/Users/violet/Library/Android/sdk"
         ANDROID_SDK_ROOT = "/Users/violet/Library/Android/sdk"
