@@ -109,6 +109,29 @@ Newest entries first, grouped by job.
 
 ## Repo tooling
 
+### 2026-10-04
+
+- **Added `.github/workflows/minecraft-updates.yml`, and dropped Renovate's
+  8 Modrinth managers.** Every Minecraft download is now a pinned
+  URL + checksum in `minecraft.nomad.hcl`'s `locals.artifacts` table (see
+  the minecraft entry below), and a Renovate regex manager can't regenerate
+  either half: Modrinth's CDN path embeds an opaque version ID, and Renovate
+  can't compute a file hash. Those managers could only post "do not merge as
+  is" Dependency Dashboard nudges, and they didn't cover Paper or
+  Geyser/Floodgate at all. The workflow runs
+  `.github/scripts/minecraft_artifacts.py` daily, resolves every entry
+  against its real upstream (Fill, GeyserMC, Modrinth), re-verifies the new
+  checksum against a fresh download, and opens one complete, mergeable PR
+  per update (matrix job + `peter-evans/create-pull-request`). Daily rather
+  than Renovate's weekly schedule because a Geyser bump is what lets
+  Bedrock players back in after a client update. One PR per artifact
+  rather than one rolling PR, so an urgent Geyser bump never waits on a
+  datapack bump that needs more thought. Stdlib-only Python, so the
+  workflow needs nothing but an interpreter. Before merging, `check`/`apply`
+  were run against a copy of the pins with Paper, Geyser and BlueMap
+  deliberately set back a build; `apply` reproduced the real URLs, checksums
+  and README version cells exactly.
+
 ### 2026-09-30
 
 - **Added Renovate** (`renovate.json`), requested directly ("keep track of
@@ -179,6 +202,10 @@ Newest entries first, grouped by job.
   otherwise go-getter would unpack the `.zip` datapacks into directories.
   `../alloc/minecraft-data/...` as a destination was confirmed accepted by
   `nomad job validate` (it stays inside the allocation directory).
+- **Updates now arrive as PRs** from `.github/workflows/minecraft-updates.yml`
+  (see Repo tooling above). Paper only moves within its pinned game version
+  (26.2); a game-version bump stays manual, since every plugin and datapack
+  has to be re-checked against it.
 - The `paper_version` key in the `nomad/jobs/minecraft` Nomad Variable is
   unused now and can be deleted once this is deployed.
 

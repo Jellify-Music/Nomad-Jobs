@@ -1,0 +1,74 @@
+name: Minecraft artifact updates
+
+# Checks every pinned entry in minecraft.nomad.hcl's locals.artifacts against
+# its upstream (Fill, GeyserMC, Modrinth) and opens one PR per available
+# update. Merging a PR only changes the job spec - deploying is still a
+# separate Semaphore run. See .github/scripts/minecraft_artifacts.py.
+
+on:
+  schedule:
+    # Daily: Bedrock clients auto-update, and a Geyser bump is what lets
+    # Bedrock players back in after a protocol change.
+    - cron: "0 14 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: minecraft-artifact-updates
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      updates: ${{ steps.check.outputs.updates }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - id: check
+        run: python3 .github/scripts/minecraft_artifacts.py check
+
+  open-pr:
+    needs: check
+    # Still open PRs for whatever did resolve if another entry's check failed.
+    if: ${{ !cancelled() && needs.check.outputs.updates != '' && needs.check.outputs.updates != '[]' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.check.outputs.updates) }}
+    name: open-pr (${{ matrix.slug }})
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - id: apply
+        env:
+          KEY: ${{ matrix.key }}
+        run: python3 .github/scripts/minecraft_artifacts.py apply --key "$KEY"
+
+      - if: steps.apply.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          # PRs opened with the default GITHUB_TOKEN don't trigger other
+          # workflows, so Validate wouldn't run on them. Set this secret to a
+          # fine-grained PAT (contents + pull requests: read/write on this
+          # repo) to get CI on these PRs.
+          token: ${{ secrets.MINECRAFT_UPDATES_TOKEN || github.token }}
+          branch: ${{ steps.apply.outputs.branch }}
+          delete-branch: true
+          title: ${{ steps.apply.outputs.title }}
+          commit-message: ${{ steps.apply.outputs.title }}
+          body: ${{ steps.apply.outputs.body }}

@@ -90,15 +90,49 @@ version via Modrinth's API before being pinned here.
 |---|---|
 | `minecraft/RCON_PASSWORD` | RCON console auth |
 
-## Adding or upgrading a plugin/datapack
+## Updates
 
-1. Confirm compatibility with the server's pinned Paper version (Modrinth
-   or Hangar's API, same as everything above) — don't rely on a mod page's
-   "latest" label alone.
-2. Prefer a source with a checkable version/build/checksum API (Modrinth,
-   Hangar, GeyserMC's own API) over a bare downloads page — that's what
-   makes checksum verification possible.
+[`.github/workflows/minecraft-updates.yml`](../.github/workflows/minecraft-updates.yml)
+runs daily (and on demand via *Run workflow*). It checks every
+`locals.artifacts` entry against its upstream and opens one PR per update
+(branch `minecraft-artifacts/<name>`). Each PR is complete: new URL, new
+checksum (re-verified against a fresh download) and this README's version
+cell. Merging doesn't deploy; run Semaphore when you're ready.
+
+What counts as an update:
+
+- **Paper:** a newer STABLE build of the *same* game version (26.2). Moving
+  to a new game version stays a manual change, since every plugin and
+  datapack has to be re-checked against it.
+- **Geyser/Floodgate:** the newest GeyserMC build. Merge these promptly —
+  they're what let Bedrock players back in after a client update.
+- **Modrinth plugins/datapacks:** the newest *release* (no betas/snapshots)
+  that declares support for the pinned game version, from the same loader
+  family and file naming pattern as the current pin.
+
+If an open PR's update gets superseded, the next run force-pushes the newer
+one to the same branch. The logic lives in
+[`.github/scripts/minecraft_artifacts.py`](../.github/scripts/minecraft_artifacts.py),
+with offline tests in `tests/test_minecraft_artifacts.py`.
+
+PRs opened with the default `GITHUB_TOKEN` don't trigger the Validate
+workflow. Setting a `MINECRAFT_UPDATES_TOKEN` repo secret (a fine-grained
+PAT with contents + pull requests read/write on this repo) makes CI run on
+them. Without it, the repo setting *Allow GitHub Actions to create and
+approve pull requests* has to be on.
+
+## Adding a plugin/datapack
+
+1. Confirm compatibility with the server's pinned Paper version (Modrinth's
+   API, same as everything above) — don't rely on a mod page's "latest"
+   label alone.
+2. Use a source the update workflow understands (Modrinth, GeyserMC or
+   Fill). Anything else fails `tests/test_minecraft_artifacts.py` until the
+   script gets a resolver for it.
 3. Add an entry (destination path, URL, `sha1:`/`sha256:` checksum) to the
    `locals.artifacts` table in [`minecraft.nomad.hcl`](minecraft.nomad.hcl).
-4. Add a row here, and record the decision (especially any alternative
-   considered and rejected) in `../CHANGELOG.md` under a new dated entry.
+4. Add a row here — linked as `[Name](...)`, where `Name` matches the
+   entry's filename up to the first `-`/`_`/`.` — and record the decision
+   (especially any alternative considered and rejected) in
+   `../CHANGELOG.md` under a new dated entry. Upgrades after that arrive as
+   PRs on their own.
