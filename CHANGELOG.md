@@ -10,6 +10,24 @@ inline HCL comments.
 
 Newest entries first, grouped by job.
 
+## penpot
+
+### 2026-10-05
+
+- **New job.** [Penpot](https://penpot.app) 2.18.2 at `penpot.jellify.app`,
+  with frontend, backend and exporter as `docker` tasks on the Ubuntu/amd64
+  nodes. It uses the shared cosmonautical `postgres` and `redis` (DB 3)
+  clusters, which jellify jobs can discover through Consul because Consul
+  is a single datacenter. Assets are stored on the Jellify NFS share
+  (`/mnt/jellify/penpot/assets`) using the filesystem backend, not
+  SeaweedFS S3. The frontend's nginx serves stored files directly from that
+  mount via `X-Accel-Redirect`, so S3 would have added a second network hop
+  for every asset.
+- **Keycloak SSO only, labelled "Sign in with Cosmonautical."**
+  `PENPOT_OIDC_NAME` sets the button's full text. Password login and open
+  registration are off, and `oidc-registration` creates an account on a
+  first Keycloak login.
+
 ## bobby
 
 ### 2026-09-30
