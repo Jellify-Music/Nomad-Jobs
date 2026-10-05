@@ -262,9 +262,10 @@ EOF
 
       kill_timeout = "30s"
 
+      # The App's gradle.properties gives Gradle an 8 GiB heap on its own.
       resources {
-        cpu    = 4000 # MHz
-        memory = 8192 # MiB
+        cpu    = 4000  # MHz
+        memory = 16384 # MiB
       }
     }
   }
