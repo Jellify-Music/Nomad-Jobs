@@ -497,6 +497,25 @@ an entry here rather than inline comments, per the convention above.
 
 ## actions-runner
 
+### 2026-10-04 (Linux runners)
+
+- **Added `actions-runner-linux`: x64 Linux runners on Ubuntu hosts in
+  `github_runners`** (`fibonacci` and `dijkstra` to start), labelled
+  `self-hosted,Linux,X64`. They run the official
+  `ghcr.io/actions/actions-runner` image under the docker driver instead of
+  copying the macOS group's host-toolchain setup: nomaduntu has no roles
+  for that toolchain, and the macOS group depends on `plutil`, Homebrew and
+  `/Users/violet` paths. Same JIT loop and PAT. Differences: JSON parsed
+  with `jq`, the PAT passed to `curl` on stdin, `start.sh` runs as root and
+  empties `/etc/sudoers` before running each job as `runner` (the image's
+  passwordless sudo would let any job read the PAT), and leftover `runner`
+  processes are killed between jobs.
+- **macOS group renamed `actions-runner` -> `actions-runner-macos`**, and
+  its `darwin` constraint moved from the job into the group. Renaming a
+  group stops its allocations and places new ones, so applying this
+  restarts the runners on `galileo` and `hopper` (any CI job running at
+  that moment is cancelled).
+
 ### 2026-10-04
 
 - **UTF-8 locale (`LANG`/`LC_ALL` = `en_US.UTF-8`).** Nomad starts the

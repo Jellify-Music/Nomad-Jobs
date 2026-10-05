@@ -1,22 +1,35 @@
 # actions-runner
 
 Self-hosted GitHub Actions runners for the Jellify App repo
-(`Jellify-Music/App`), giving it ARM macOS runners for Android builds and
-Maestro tests. A `system` job: one runner on every node in Nomadable's
-`github_runners` inventory group (currently `galileo` and `hopper`).
+(`Jellify-Music/App`): ARM macOS runners for Android/iOS builds and Maestro
+tests, plus x64 Linux runners for everything that doesn't need a Mac. A
+`system` job: one runner on every node in Nomadable's `github_runners`
+inventory group, through one task group per OS:
+
+| Group | Hosts | Labels | How it runs |
+|---|---|---|---|
+| `actions-runner-macos` | `galileo`, `hopper` | `self-hosted,macOS,ARM64` | `raw_exec` against the host toolchain Nomadable provisions |
+| `actions-runner-linux` | `fibonacci`, `dijkstra` (once added to the group) | `self-hosted,Linux,X64` | `docker`, official `ghcr.io/actions/actions-runner` image |
+
+Workflows pick an OS by label, so a job only lands on Linux if its
+`runs-on` asks for `Linux`.
 
 ## How it works
 
 - **Placement** — Nomadintosh's `nomad` role publishes each client's
   inventory groups as node meta `inventory_groups`; this job constrains on it
-  containing `github_runners`. Adding or removing a runner host is an
+  containing `github_runners`, and each group adds an `attr.kernel.name`
+  constraint (`darwin` / `linux`). Adding or removing a runner host is an
   inventory change in Nomadable, not a change here.
-- **Runner binary** — pre-warmed by Nomadable at
+- **Runner binary (macOS)** — pre-warmed by Nomadable at
   `/opt/actions-runner/current` (`github_runner_actions_runner_version`,
   tracked by Renovate there). `start.sh` copies it into the allocation, so
   the runner's self-updates stay in the allocation and Ansible can prune old
   versions under a running runner. Nothing is installed or registered by
   hand on the host.
+- **Runner binary (Linux)** — the image tag, pinned by digest and bumped by
+  Renovate here. It can drift from the macOS version Nomadable pins; the
+  runner self-updates either way.
 - **Registration** — `start.sh` loops forever: it asks GitHub for a
   [JIT runner config](https://docs.github.com/en/rest/actions/self-hosted-runners#create-configuration-for-a-just-in-time-runner-for-a-repository)
   and runs the runner with it. A JIT runner is ephemeral — it takes exactly
@@ -26,7 +39,26 @@ Maestro tests. A `system` job: one runner on every node in Nomadable's
   build output) is deleted before every job, so no job sees the previous
   one's files. Cross-run caching is `actions/cache`'s job.
 
-## Directories
+## Linux group
+
+- **No host toolchain.** nomaduntu installs nothing for `github_runners`, and
+  Nomadable's `group_vars/github_runners.yml` only means anything to
+  Nomadintosh's macOS roles. Workflows bring their own tools with
+  `actions/setup-*`; the image has `git`, `curl`, `jq` and the Docker CLI
+  (no daemon socket is mounted, so Docker-based steps won't work).
+- **No sudo.** `start.sh` runs as root, reads the PAT, then empties
+  `/etc/sudoers` and runs each runner as the image's `runner` user. The
+  image would otherwise give `runner` passwordless sudo, and any CI job
+  could read the PAT out of `start.sh`'s memory. Steps that `sudo apt-get
+  install` won't work here.
+- **Fresh state per job, within one container.** `_work` is wiped and every
+  process left by `runner` (Gradle daemons, background servers) is killed
+  between jobs. The toolcache (`/home/runner/toolcache`) is kept for the
+  life of the allocation and goes with the container.
+- **No Android emulator yet.** That needs `/dev/kvm` passed into the
+  container and an `x86_64` system image.
+
+## Directories (macOS group)
 
 | Path | What | Lifetime |
 |---|---|---|
@@ -56,7 +88,7 @@ applied by Nomadintosh's generic roles. This job hardcodes their paths in its
 
 | Key | Used for |
 |---|---|
-| `jellify/actions-runner/GITHUB_PAT` | Fine-grained personal access token scoped to `Jellify-Music/App` with **Administration: read and write** — the permission `generate-jitconfig` requires. Only used to mint JIT configs; `start.sh` reads it once and deletes the rendered file so workflow steps can't read it |
+| `jellify/actions-runner/GITHUB_PAT` | Shared by both groups. Fine-grained personal access token scoped to `Jellify-Music/App` with **Administration: read and write** — the permission `generate-jitconfig` requires. Only used to mint JIT configs; `start.sh` reads it once and deletes the rendered file so workflow steps can't read it |
 
 The allocation stays pending until the key exists.
 
@@ -75,6 +107,12 @@ The allocation stays pending until the key exists.
   Hypervisor.framework access.
 - **`cpu = 16` / `memory = 8192`** — unchanged from the job as it ran before
   this rewrite.
+- **Linux in Docker, not a ported host toolchain** — nomaduntu would need
+  Homebrew-equivalent roles for every tool, and the macOS group's paths
+  don't exist on Ubuntu anyway. The official image keeps the hosts clean
+  and the runner version in one Renovate-tracked line.
+- **The PAT goes to `curl` on stdin** (Linux group), so it never appears in
+  a process's argv.
 
 ## History
 
