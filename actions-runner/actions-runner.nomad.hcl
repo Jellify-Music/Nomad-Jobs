@@ -2,8 +2,9 @@ job "actions-runner" {
   datacenters = ["jellify"]
 
   # One runner on every node in Nomadable's `github_runners` inventory group
-  # (published as node meta by Nomadintosh's nomad role) - adding a runner is
-  # an inventory change, not a change here.
+  # (published as node meta by Nomadintosh's and nomaduntu's nomad roles) -
+  # adding a runner is an inventory change, not a change here. Each group
+  # below picks the hosts of one OS.
   type = "system"
 
   constraint {
@@ -12,13 +13,13 @@ job "actions-runner" {
     value     = "github_runners"
   }
 
-  # The env paths below are macOS/Homebrew-specific.
-  constraint {
-    attribute = "${attr.kernel.name}"
-    value     = "darwin"
-  }
+  group "actions-runner-macos" {
+    # The env paths below are macOS/Homebrew-specific.
+    constraint {
+      attribute = "${attr.kernel.name}"
+      value     = "darwin"
+    }
 
-  group "actions-runner" {
     # start.sh loops forever on its own (one JIT registration per CI job), so
     # a task exit is always a failure - usually GitHub's API being
     # unreachable. Keep retrying rather than ever giving up on the node.
@@ -145,6 +146,124 @@ EOF
 
       resources {
         cpu    = 16   # MHz
+        memory = 8192 # MiB
+      }
+    }
+  }
+
+  # Linux hosts run the official runner image instead of a host toolchain, so
+  # nomaduntu provisions nothing for them: the runner version is the image
+  # tag (Renovate-tracked here), and workflows bring their own tools with
+  # actions/setup-*.
+  group "actions-runner-linux" {
+    constraint {
+      attribute = "${attr.kernel.name}"
+      value     = "linux"
+    }
+
+    # Same as the macOS group: start.sh never exits on its own.
+    restart {
+      attempts = 3
+      interval = "10m"
+      delay    = "30s"
+      mode     = "delay"
+    }
+
+    task "actions-runner" {
+      driver = "docker"
+
+      # start.sh runs as root so it can hold the PAT out of reach of CI jobs,
+      # which it runs as the image's unprivileged `runner` user.
+      user = "root"
+
+      # Same PAT as the macOS group. start.sh reads it once and deletes the
+      # file.
+      template {
+        destination = "secrets/github_pat"
+        perms       = "0600"
+        data        = <<EOF
+{{ key "jellify/actions-runner/GITHUB_PAT" }}
+EOF
+      }
+
+      # No ${...} or {{...}} in here, same as the macOS group's start.sh.
+      template {
+        destination = "local/start.sh"
+        perms       = "0755"
+        data        = <<EOF
+#!/bin/bash
+set -euo pipefail
+
+pat="$(tr -d '[:space:]' < "$NOMAD_SECRETS_DIR/github_pat")"
+rm -f "$NOMAD_SECRETS_DIR/github_pat"
+
+# The image gives `runner` passwordless sudo. Without it, CI jobs can't
+# read this root process's memory, and with it the PAT.
+: > /etc/sudoers
+
+mkdir -p "$AGENT_TOOLSDIRECTORY"
+chown runner "$AGENT_TOOLSDIRECTORY"
+
+child=""
+trap 'if [ -n "$child" ]; then kill -TERM "$child" 2>/dev/null; wait "$child"; fi; exit 0' TERM INT
+
+labels="$(printf '"%s",' $(echo "$RUNNER_LABELS" | tr ',' ' '))"
+labels="[$(echo "$labels" | sed 's/,$//')]"
+host="$(echo "$NODE_NAME" | cut -d. -f1)"
+
+while true; do
+  # Every CI job starts from an empty work folder.
+  rm -rf /home/runner/_work
+
+  # The PAT goes to curl on stdin, never in its argv.
+  name="$host-$(date +%s)"
+  response="$(printf 'Authorization: Bearer %s\n' "$pat" | curl -fsS -X POST \
+    -H @- \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runners/generate-jitconfig" \
+    -d "{\"name\":\"$name\",\"runner_group_id\":1,\"labels\":$labels,\"work_folder\":\"_work\"}")"
+  jit="$(printf '%s' "$response" | jq -r .encoded_jit_config)"
+
+  echo "starting runner $name"
+  runuser -u runner -- /home/runner/run.sh --jitconfig "$jit" &
+  child=$!
+  wait "$child" || echo "runner $name exited with $?"
+  child=""
+
+  # Nothing a job started (Gradle daemons, background servers) outlives it.
+  pkill -KILL -u runner || true
+  sleep 5
+done
+EOF
+      }
+
+      env {
+        GITHUB_REPOSITORY = "Jellify-Music/App"
+        RUNNER_LABELS     = "self-hosted,Linux,X64"
+        NODE_NAME         = "${node.unique.name}"
+
+        # actions/setup-* downloads live outside _work, so they last for the
+        # allocation instead of one job.
+        HOME                 = "/home/runner"
+        AGENT_TOOLSDIRECTORY = "/home/runner/toolcache"
+        RUNNER_TOOL_CACHE    = "/home/runner/toolcache"
+
+        LANG   = "C.UTF-8"
+        LC_ALL = "C.UTF-8"
+      }
+
+      config {
+        image   = "ghcr.io/actions/actions-runner:2.337.0@sha256:e5496277be5d09bc968b3d64911b74e219ac4a3f2edce956a3ecf9271bea1ef4"
+        command = "/bin/bash"
+        args    = ["/local/start.sh"]
+        init    = true
+      }
+
+      kill_timeout = "30s"
+
+      resources {
+        cpu    = 4000 # MHz
         memory = 8192 # MiB
       }
     }
