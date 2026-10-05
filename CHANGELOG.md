@@ -509,7 +509,9 @@ an entry here rather than inline comments, per the convention above.
   with `jq`, the PAT passed to `curl` on stdin, `start.sh` runs as root and
   empties `/etc/sudoers` before running each job as `runner` (the image's
   passwordless sudo would let any job read the PAT), and leftover `runner`
-  processes are killed between jobs.
+  processes are killed between jobs. 16 GiB of memory, because the App's
+  `gradle.properties` gives Gradle an 8 GiB heap by itself (`-Xmx8192m`)
+  for Android release builds.
 - **macOS group renamed `actions-runner` -> `actions-runner-macos`**, and
   its `darwin` constraint moved from the job into the group. Renaming a
   group stops its allocations and places new ones, so applying this
