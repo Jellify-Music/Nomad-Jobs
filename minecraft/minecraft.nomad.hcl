@@ -21,8 +21,8 @@ locals {
       checksum = "sha256:21570aff9ce17d6983928e8552777760e1ede5050026b04c686b0ae112e6fd7e"
     }
     "plugins/ViaVersion.jar" = {
-      url      = "https://cdn.modrinth.com/data/P1OZGk5p/versions/FaishMnD/ViaVersion-5.12.0.jar"
-      checksum = "sha1:7486c37c91b3cc892d37ee9a05470bf6ec49a59f"
+      url      = "https://cdn.modrinth.com/data/P1OZGk5p/versions/5WgnasGG/ViaVersion-5.12.1.jar"
+      checksum = "sha1:9d7788788a0b2960edd4bab5fce55f55fa50702f"
     }
     "plugins/ViaBackwards.jar" = {
       url      = "https://cdn.modrinth.com/data/NpvuJQoq/versions/SxGhdsPK/ViaBackwards-5.12.0.jar"
