@@ -26,7 +26,7 @@ a JDK bump means changing that package and this path together.
 
 | Plugin | Version | Purpose |
 |---|---|---|
-| [Geyser](https://geysermc.org/) | 2.11.3 build 1248 (pinned) | Lets Bedrock clients connect to this Java server. |
+| [Geyser](https://geysermc.org/) | 2.11.3 build 1251 (pinned) | Lets Bedrock clients connect to this Java server. |
 | [Floodgate](https://geysermc.org/) | 2.2.5 build 141 (pinned) | Companion to Geyser — lets Bedrock players join as virtual accounts, no Java (Mojang) account required. |
 | [ViaVersion](https://modrinth.com/plugin/viaversion) | 5.12.0 (pinned) | Lets newer Java clients connect to the server's pinned Paper protocol version. |
 | [ViaBackwards](https://modrinth.com/plugin/viabackwards) | 5.12.0 (pinned) | Companion to ViaVersion — lets *older* Java clients connect the same way. |
