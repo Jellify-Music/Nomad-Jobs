@@ -37,8 +37,8 @@ locals {
       checksum = "sha1:f8c6c4a73bf853755108578625cf5ca212957b53"
     }
     "plugins/BlueMap.jar" = {
-      url      = "https://cdn.modrinth.com/data/swbUV1cr/versions/pILlMIlN/bluemap-5.28-paper.jar"
-      checksum = "sha1:6e9d1bb29a43aa24108b5cb4b61de6efec1f521a"
+      url      = "https://cdn.modrinth.com/data/swbUV1cr/versions/uHQIrUdf/bluemap-5.29-paper.jar"
+      checksum = "sha1:3d09cf5e219ef82167fd1ca553006c77e21c6d2d"
     }
     "plugins/AutoTreeChop.jar" = {
       url      = "https://cdn.modrinth.com/data/pwCm0TtE/versions/o9SdPqFP/AutoTreeChop-1.7.5.jar"
