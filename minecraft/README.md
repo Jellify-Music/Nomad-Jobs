@@ -34,9 +34,12 @@ a JDK bump means changing that package and this path together.
 | [AuraSkills](https://modrinth.com/plugin/auraskills) | 2.4.0 | RPG skills/leveling. |
 | [BlueMap](https://modrinth.com/plugin/bluemap) | 5.29 (Paper build) | Live web map of the world, served at `minecraft.jellify.app`. |
 | [AutoTreeChop](https://modrinth.com/plugin/autotreechop) | 1.7.5 | Fells an entire tree from one log break and auto-replants the correct sapling, so chopped forest actually grows back instead of leaving permanent stumps/clear-cuts. |
+| [DirectionHUD](https://modrinth.com/plugin/directionhud) | 1.8.4.0 | On-screen HUD with coordinates, facing direction and time of day, plus saved destinations, death locations and player tracking. Each player toggles it with `/hud`. It's server-side and draws in the action bar, so Bedrock players should see it through Geyser too. |
+| [OtterLib](https://modrinth.com/plugin/otterlib) | 0.4.0.1 (beta) | Library DirectionHUD hard-depends on (`depend: [OtterLib]`). Only ever published as betas, so it's pinned on the beta channel. |
 
 Everything is pinned: Geyser/Floodgate to an exact GeyserMC build (sha256),
-the rest to an exact Modrinth file (sha1). Bump Geyser promptly when Bedrock
+the rest to an exact Modrinth file (sha1). OtterLib is the one beta pin: upstream
+has never published a stable release. Bump Geyser promptly when Bedrock
 clients update — a Bedrock protocol change locks Bedrock players out until
 it's bumped.
 
@@ -106,8 +109,9 @@ What counts as an update:
   datapack has to be re-checked against it.
 - **Geyser/Floodgate:** the newest GeyserMC build. Merge these promptly —
   they're what let Bedrock players back in after a client update.
-- **Modrinth plugins/datapacks:** the newest *release* (no betas/snapshots)
-  that declares support for the pinned game version, from the same loader
+- **Modrinth plugins/datapacks:** the newest *release* that declares
+  support for the pinned game version (a pin that's already a beta, like
+  OtterLib, also accepts newer betas), from the same loader
   family and file naming pattern as the current pin.
 
 If an open PR's update gets superseded, the next run force-pushes the newer

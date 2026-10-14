@@ -14,9 +14,10 @@ Every entry's source is inferred from its URL:
     version. Moving to a new game version is a deliberate, manual change.
   - GeyserMC (download.geysermc.org): newest build of the newest version.
   - Modrinth (cdn.modrinth.com): newest release compatible with the pinned
-    Paper game version, for the same loader family (plugin vs datapack) and
-    the same file naming pattern (so e.g. BlueMap's -paper build never turns
-    into its -spigot one).
+    Paper game version (or newest beta too, if the pin is already a beta -
+    some libraries never cut a stable release), for the same loader family
+    (plugin vs datapack) and the same file naming pattern (so e.g. BlueMap's
+    -paper build never turns into its -spigot one).
 """
 import argparse
 import hashlib
@@ -170,9 +171,11 @@ def modrinth_update(client: Client, m: re.Match, game_version: str) -> Update | 
         key=_published,
         reverse=True,
     )
-    shape = file_shape(m["filename"])
+    # Pinned URLs are percent-encoded (`+` -> `%2B`), API filenames aren't.
+    shape = file_shape(urllib.parse.unquote(m["filename"]))
+    channels = {"release", current["version_type"]} - {"alpha"}
     for candidate in candidates:
-        if candidate["version_type"] != "release":
+        if candidate["version_type"] not in channels:
             continue
         files = [f for f in candidate["files"] if f["primary"]] or candidate["files"]
         if not files or file_shape(files[0]["filename"]) != shape:

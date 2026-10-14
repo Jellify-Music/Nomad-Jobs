@@ -44,6 +44,14 @@ locals {
       url      = "https://cdn.modrinth.com/data/pwCm0TtE/versions/o9SdPqFP/AutoTreeChop-1.7.5.jar"
       checksum = "sha1:5b2e013994950afadd3f22b0242dc0500da79c07"
     }
+    "plugins/OtterLib.jar" = {
+      url      = "https://cdn.modrinth.com/data/zVVpzurY/versions/oxZLx3yz/otterlib-0.4.0.1%2B26.2-paper.jar"
+      checksum = "sha1:358a62f7ff02341e267f41b8f3947f1105bba572"
+    }
+    "plugins/DirectionHUD.jar" = {
+      url      = "https://cdn.modrinth.com/data/H8WCXRtb/versions/u876aZ5C/directionhud-paper-1.8.4.0%2B26.2.jar"
+      checksum = "sha1:27c72b481344358e6b9d6b9b249d82412abb4447"
+    }
     "world/datapacks/Terralith.zip" = {
       url      = "https://cdn.modrinth.com/data/8oi3bsk5/versions/CzijfXJQ/Terralith_26.2_v2.6.4.zip"
       checksum = "sha1:96ccd25be9ba5240ebe8150cc29240aca781f0e1"

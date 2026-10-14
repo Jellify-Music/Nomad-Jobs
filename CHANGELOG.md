@@ -172,6 +172,34 @@ Newest entries first, grouped by job.
 
 ## minecraft
 
+### 2026-10-14
+
+- **Added DirectionHUD (1.8.4.0+26.2) plus its required library OtterLib
+  (0.4.0.1+26.2).** It's an on-screen HUD for coordinates, direction and time
+  of day, with saved destinations and death locations, and each player
+  toggles it with `/hud`. It was picked over a client-side info mod (MiniHUD
+  and similar) for the same reason as BlueMap: it runs on the server, so it
+  works for every Java version ViaVersion bridges and for Bedrock players
+  through Geyser. Alternatives considered: TAB + PlaceholderAPI (more
+  flexible, but much more config for the same result) and the dedicated
+  "day counter" plugins on Modrinth (none had published a 26.2 build).
+  DirectionHUD's `plugin.yml` hard-depends on OtterLib (`depend:
+  [OtterLib]`). Its Modrinth metadata also lists Fabric API, but that only
+  applies to the Fabric build and is ignored here. OtterLib has only ever
+  been published as betas, so it is this job's one non-release pin.
+- **Update workflow: two fixes so the new pins actually get bump PRs.**
+  `modrinth_update` used to skip everything except `release`, which would
+  have left OtterLib pinned forever. It now also accepts `beta` when the
+  current pin is already a beta (never `alpha`). It also compared the
+  pinned URL's percent-encoded filename (`...1.8.4.0%2B26.2.jar`) against
+  the API's decoded one (`...1.8.4.0+26.2.jar`). Those never matched, so any
+  file with a `+` in its name, which includes both new pins, would never
+  have been offered an update. The pinned filename is now decoded first.
+- **Fixed: `test_apply_to_readme` broke on every merged bump PR.** It ran
+  against the live README with the old version numbers hardcoded, so
+  merging the Paper/Geyser/BlueMap bumps (#12, #13, #17) turned `main` red.
+  It now uses a fixed set of sample table rows.
+
 ### 2026-10-04
 
 - **Every download is now a pinned Nomad `artifact`, and the three fetch
