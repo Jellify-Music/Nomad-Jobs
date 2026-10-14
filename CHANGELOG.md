@@ -203,10 +203,19 @@ Newest entries first, grouped by job.
   10m** (and `progress_deadline` from 10m to 15m, since it has to stay above
   the healthy deadline). A cold start runs the `seed-data` restore from NFS,
   then downloads 13 artifacts, then boots Paper, and that regularly ran past
-  5m, marking the alloc unhealthy before the server was even up. It came up
-  while recovering from a one-off corrupted ViaVersion download from the
-  Modrinth CDN (checksum `f0154d7…` instead of the pinned `9d77887…`; a
-  re-download got the right file, so the pin was fine).
+  5m, marking the alloc unhealthy before the server was even up.
+- **Fixed: the ViaVersion 5.12.0 -> 5.12.1 bump (#15) left the server unable
+  to start.** Every attempt failed with `Checksums did not match ... Expected:
+  9d7788... Got: f0154d7...`, even though the pin was correct (Modrinth's API
+  and a fresh download both give `9d7788...`). `seed-data` had restored the
+  old 5.12.0 jar from NFS, and the artifact getter writes into an existing
+  file without truncating it. 5.12.1 is 558 bytes smaller than 5.12.0, so the
+  result was the new jar followed by the old jar's last 558 bytes (rebuilding
+  that by hand gives `f0154d7...` exactly). Retries and a fresh alloc didn't
+  help, because the sticky `ephemeral_disk` carried the bad file over each
+  time. Any bump to a smaller file would hit the same thing. `seed-data` now
+  deletes every managed artifact path after the restore, so each one is
+  downloaded fresh.
 
 ### 2026-10-04
 
