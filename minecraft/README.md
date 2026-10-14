@@ -32,7 +32,7 @@ a JDK bump means changing that package and this path together.
 | [ViaBackwards](https://modrinth.com/plugin/viabackwards) | 5.12.0 (pinned) | Companion to ViaVersion — lets *older* Java clients connect the same way. |
 | [Chunky](https://modrinth.com/plugin/chunky) | 1.5.3 | World pre-generation, so terrain doesn't generate live under players walking near the edge of explored land. |
 | [AuraSkills](https://modrinth.com/plugin/auraskills) | 2.4.0 | RPG skills/leveling. |
-| [BlueMap](https://modrinth.com/plugin/bluemap) | 5.28 (Paper build) | Live web map of the world, served at `minecraft.jellify.app`. |
+| [BlueMap](https://modrinth.com/plugin/bluemap) | 5.29 (Paper build) | Live web map of the world, served at `minecraft.jellify.app`. |
 | [AutoTreeChop](https://modrinth.com/plugin/autotreechop) | 1.7.5 | Fells an entire tree from one log break and auto-replants the correct sapling, so chopped forest actually grows back instead of leaving permanent stumps/clear-cuts. |
 
 Everything is pinned: Geyser/Floodgate to an exact GeyserMC build (sha256),
