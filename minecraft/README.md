@@ -20,7 +20,7 @@ a JDK bump means changing that package and this path together.
 
 | Component | Version | Source |
 |---|---|---|
-| [Paper](https://papermc.io/) | 26.2 build 129 (pinned) | Fill API, sha256 |
+| [Paper](https://papermc.io/) | 26.2 build 133 (pinned) | Fill API, sha256 |
 
 ## Plugins
 
