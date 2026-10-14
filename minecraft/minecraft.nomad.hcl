@@ -98,6 +98,11 @@ job "minecraft" {
       mode     = "delay"
     }
 
+    update {
+      healthy_deadline  = "10m"
+      progress_deadline = "15m"
+    }
+
     network {
       port "java"    { static = 25565 }
       port "bedrock" { static = 19132 }

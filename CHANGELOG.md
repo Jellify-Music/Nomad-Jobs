@@ -199,6 +199,14 @@ Newest entries first, grouped by job.
   against the live README with the old version numbers hardcoded, so
   merging the Paper/Geyser/BlueMap bumps (#12, #13, #17) turned `main` red.
   It now uses a fixed set of sample table rows.
+- **Raised the deployment `healthy_deadline` from Nomad's 5m default to
+  10m** (and `progress_deadline` from 10m to 15m, since it has to stay above
+  the healthy deadline). A cold start runs the `seed-data` restore from NFS,
+  then downloads 13 artifacts, then boots Paper, and that regularly ran past
+  5m, marking the alloc unhealthy before the server was even up. It came up
+  while recovering from a one-off corrupted ViaVersion download from the
+  Modrinth CDN (checksum `f0154d7…` instead of the pinned `9d77887…`; a
+  re-download got the right file, so the pin was fine).
 
 ### 2026-10-04
 
