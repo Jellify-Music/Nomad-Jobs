@@ -98,6 +98,11 @@ job "minecraft" {
       mode     = "delay"
     }
 
+    update {
+      healthy_deadline  = "10m"
+      progress_deadline = "15m"
+    }
+
     network {
       port "java"    { static = 25565 }
       port "bedrock" { static = 19132 }
@@ -147,6 +152,10 @@ job "minecraft" {
           fi
 
           mkdir -p "$local_dir/config" "$local_dir/plugins" "$local_dir/world/datapacks"
+
+          # The artifact getter overwrites in place without truncating, so a
+          # leftover larger jar corrupts a smaller replacement - clear them.
+          rm -f ${join(" ", formatlist("\"$local_dir/%s\"", keys(local.artifacts)))}
 
           if [ ! -s "$local_dir/server.properties" ]; then
             cat > "$local_dir/server.properties" <<-'PROPS'
