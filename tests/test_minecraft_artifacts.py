@@ -71,6 +71,17 @@ def test_apply_to_hcl_only_touches_the_target_entry():
             assert (new_pins[other.key].url, new_pins[other.key].checksum) == (other.url, other.checksum)
 
 
+# A fixed copy of the README's table shapes rather than the live README, whose
+# version cells change with every merged bump PR.
+README_ROWS = """\
+| [Paper](https://papermc.io/) | 26.2 build 129 (pinned) | Fill API, sha256 |
+| [Geyser](https://geysermc.org/) | 2.11.3 build 1248 (pinned) | Bedrock bridge. |
+| [BlueMap](https://modrinth.com/plugin/bluemap) | 5.28 (Paper build) | Web map. |
+| [Chunky](https://modrinth.com/plugin/chunky) | 1.5.3 | Pre-generation. |
+| [Tectonic](https://modrinth.com/datapack/tectonic) | 3.0.25 | Terrain. |
+"""
+
+
 @pytest.mark.parametrize(
     "key, old, new, expected",
     [
@@ -81,11 +92,47 @@ def test_apply_to_hcl_only_touches_the_target_entry():
     ],
 )
 def test_apply_to_readme(key, old, new, expected):
-    text, updated = ma.apply_to_readme(README.read_text(), key, old, new)
+    text, updated = ma.apply_to_readme(README_ROWS, key, old, new)
     assert updated
     assert expected in text
 
 
 def test_apply_to_readme_reports_a_miss():
-    text = README.read_text()
-    assert ma.apply_to_readme(text, "plugins/Chunky.jar", "9.9.9", "9.9.10") == (text, False)
+    assert ma.apply_to_readme(README_ROWS, "plugins/Chunky.jar", "9.9.9", "9.9.10") == (README_ROWS, False)
+
+
+class FakeClient:
+    def __init__(self, current, candidates):
+        self.current, self.candidates = current, candidates
+
+    def json(self, url):
+        return self.current if "/version/" in url else self.candidates
+
+
+def modrinth_version(number, version_type, published, filename):
+    return {
+        "id": number, "version_number": number, "version_type": version_type,
+        "date_published": published, "loaders": ["paper"],
+        "files": [{"primary": True, "filename": filename, "url": f"https://cdn.invalid/{filename}",
+                   "hashes": {"sha1": "0" * 40}}],
+    }
+
+
+def modrinth_match(filename):
+    return ma.MODRINTH_RE.match(f"https://cdn.modrinth.com/data/proj/versions/cur/{filename}")
+
+
+def test_modrinth_update_matches_percent_encoded_pins():
+    current = modrinth_version("1.0+26.2", "release", "2026-01-01T00:00:00Z", "mod-1.0+26.2.jar")
+    newer = modrinth_version("1.1+26.2", "release", "2026-02-01T00:00:00Z", "mod-1.1+26.2.jar")
+    update = ma.modrinth_update(FakeClient(current, [newer, current]), modrinth_match("mod-1.0%2B26.2.jar"), "26.2")
+    assert update and update.new == "1.1+26.2"
+
+
+@pytest.mark.parametrize("pinned, expect_update", [("release", False), ("beta", True)])
+def test_modrinth_update_only_takes_betas_for_a_beta_pin(pinned, expect_update):
+    current = modrinth_version("1.0", pinned, "2026-01-01T00:00:00Z", "lib-1.0.jar")
+    beta = modrinth_version("1.1", "beta", "2026-02-01T00:00:00Z", "lib-1.1.jar")
+    alpha = modrinth_version("1.2", "alpha", "2026-03-01T00:00:00Z", "lib-1.2.jar")
+    update = ma.modrinth_update(FakeClient(current, [alpha, beta, current]), modrinth_match("lib-1.0.jar"), "26.2")
+    assert (update.new if update else None) == ("1.1" if expect_update else None)
