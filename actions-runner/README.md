@@ -34,7 +34,10 @@ Workflows pick an OS by label, so a job only lands on Linux if its
   [JIT runner config](https://docs.github.com/en/rest/actions/self-hosted-runners#create-configuration-for-a-just-in-time-runner-for-a-repository)
   and runs the runner with it. A JIT runner is ephemeral — it takes exactly
   one job, then deregisters itself — so the next loop iteration registers a
-  fresh one. Runner names are `<host>-<unix time>`.
+  fresh one. Runner names are `<host>-<unix time>-<random>`. A failed
+  registration is retried in the loop after 30s. A task restart can't
+  recover from one: the PAT file is already deleted, and Nomad doesn't
+  re-render templates on restart.
 - **Clean work folder** — `_work` (the checkout, `node_modules`, Android
   build output) is deleted before every job, so no job sees the previous
   one's files. Cross-run caching is `actions/cache`'s job.

@@ -542,6 +542,20 @@ an entry here rather than inline comments, per the convention above.
 
 ## actions-runner
 
+### 2026-10-26
+
+- **Fixed: galileo's runner stuck offline after one failed API call.** When
+  the 2.338.1 bump rolled out on 2026-10-25, galileo's first
+  `generate-jitconfig` call got a 409 from GitHub (most likely a runner-name
+  clash with the outgoing allocation). `set -e` exited `start.sh`, and by
+  then it had already deleted `secrets/github_pat`. Nomad doesn't re-render
+  templates on a task restart, so every restart after that died reading the
+  missing file. That was 480+ restarts and nothing registered, while the
+  allocation sat in `pending`. A failed `generate-jitconfig` now retries
+  inside the loop, where the PAT is still in memory, instead of exiting.
+  Runner names also get a `$RANDOM` suffix so two registrations in the same
+  second can't clash. Both groups had the same bug.
+
 ### 2026-10-04 (Linux runners)
 
 - **Added `actions-runner-linux`: x64 Linux runners on Ubuntu hosts in
