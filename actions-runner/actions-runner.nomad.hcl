@@ -20,9 +20,9 @@ job "actions-runner" {
       value     = "darwin"
     }
 
-    # start.sh loops forever on its own (one JIT registration per CI job), so
-    # a task exit is always a failure - usually GitHub's API being
-    # unreachable. Keep retrying rather than ever giving up on the node.
+    # start.sh loops forever on its own (one JIT registration per CI job) and
+    # retries API errors itself, so a task exit is always a failure. Keep
+    # retrying rather than ever giving up on the node.
     restart {
       attempts = 3
       interval = "10m"
@@ -88,13 +88,20 @@ while true; do
   # A JIT config registers an ephemeral runner that takes exactly one job
   # and then deregisters itself, so nothing is configured on disk and no
   # stale registration outlives the allocation.
-  name="$(hostname -s)-$(date +%s)"
-  response="$(curl -fsS -X POST \
+  #
+  # The PAT file is already gone, so a task restart can never register
+  # again - API errors (a 409 name clash, GitHub down) must be retried here.
+  name="$(hostname -s)-$(date +%s)-$RANDOM"
+  if ! response="$(curl -fsS -X POST \
     -H "Authorization: Bearer $pat" \
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runners/generate-jitconfig" \
-    -d "{\"name\":\"$name\",\"runner_group_id\":1,\"labels\":$labels,\"work_folder\":\"_work\"}")"
+    -d "{\"name\":\"$name\",\"runner_group_id\":1,\"labels\":$labels,\"work_folder\":\"_work\"}")"; then
+    echo "generate-jitconfig failed for $name, retrying in 30s" >&2
+    sleep 30
+    continue
+  fi
   jit="$(printf '%s' "$response" | plutil -extract encoded_jit_config raw -o - -)"
 
   echo "starting runner $name"
@@ -215,14 +222,19 @@ while true; do
   # Every CI job starts from an empty work folder.
   rm -rf /home/runner/_work
 
-  # The PAT goes to curl on stdin, never in its argv.
-  name="$host-$(date +%s)"
-  response="$(printf 'Authorization: Bearer %s\n' "$pat" | curl -fsS -X POST \
+  # The PAT goes to curl on stdin, never in its argv. API errors are retried
+  # here for the same reason as the macOS group.
+  name="$host-$(date +%s)-$RANDOM"
+  if ! response="$(printf 'Authorization: Bearer %s\n' "$pat" | curl -fsS -X POST \
     -H @- \
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runners/generate-jitconfig" \
-    -d "{\"name\":\"$name\",\"runner_group_id\":1,\"labels\":$labels,\"work_folder\":\"_work\"}")"
+    -d "{\"name\":\"$name\",\"runner_group_id\":1,\"labels\":$labels,\"work_folder\":\"_work\"}")"; then
+    echo "generate-jitconfig failed for $name, retrying in 30s" >&2
+    sleep 30
+    continue
+  fi
   jit="$(printf '%s' "$response" | jq -r .encoded_jit_config)"
 
   echo "starting runner $name"
