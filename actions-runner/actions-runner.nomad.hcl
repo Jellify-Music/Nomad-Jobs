@@ -254,7 +254,7 @@ EOF
       }
 
       config {
-        image   = "ghcr.io/actions/actions-runner:2.337.0@sha256:e5496277be5d09bc968b3d64911b74e219ac4a3f2edce956a3ecf9271bea1ef4"
+        image   = "ghcr.io/actions/actions-runner:2.338.1@sha256:e275409999c37162649aa050ca573f03eab2eabcb3a1e7fcc47548de6b4f9690"
         command = "/bin/bash"
         args    = ["/local/start.sh"]
         init    = true
