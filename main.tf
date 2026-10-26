@@ -17,3 +17,7 @@ resource "nomad_job" "actions-runner" {
 resource "nomad_job" "bobby" {
   jobspec = file("${path.module}/bobby/bobby.nomad.hcl")
 }
+
+resource "nomad_job" "penpot" {
+  jobspec = file("${path.module}/penpot/penpot.nomad.hcl")
+}

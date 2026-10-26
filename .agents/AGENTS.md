@@ -222,6 +222,16 @@ Full writeup and the first real example:
 `~/Workspace/Cosmonautical/Nomad-Jobs/.agents/AGENTS.md`'s own copy of this
 section, and `Cosmonautical/Nomad-Jobs/romm`'s job spec/README.
 
+## SSO button label — always "Sign in with Cosmonautical"
+
+Any job here that uses Keycloak SSO (`auth.cosmonautical.cloud`, realm
+`cosmonautical`) should label its login button **"Sign in with
+Cosmonautical"**, not "Keycloak", "OIDC", or "OpenID". Use the exact text if
+the app takes a full label (`penpot`'s `PENPOT_OIDC_NAME`). If it only takes
+a provider name, use `Cosmonautical`. The full per-app table lives in
+`~/Workspace/Cosmonautical/Nomad-Jobs/.agents/AGENTS.md`'s section of the
+same name.
+
 ## Adding a new job — checklist
 
 1. `<job>/<job>.nomad.hcl` + a `nomad_job` resource in `main.tf` (README's
