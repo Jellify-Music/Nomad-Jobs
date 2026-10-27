@@ -9,8 +9,8 @@ locals {
   # bumps arrive as PRs, never as a silent change on restart.
   artifacts = {
     "paper.jar" = {
-      url      = "https://fill-data.papermc.io/v1/objects/bf1dcf627364f8a631ab15250d240eb5a8e89faaac523b391e1c61367fce9ff1/paper-26.2-133.jar"
-      checksum = "sha256:bf1dcf627364f8a631ab15250d240eb5a8e89faaac523b391e1c61367fce9ff1"
+      url      = "https://fill-data.papermc.io/v1/objects/ef3dbc68b013deafdbbee3bebf1ba351671ebcda94a8f136809b7532d5ba2fe1/paper-26.2-135.jar"
+      checksum = "sha256:ef3dbc68b013deafdbbee3bebf1ba351671ebcda94a8f136809b7532d5ba2fe1"
     }
     "plugins/Geyser-Spigot.jar" = {
       url      = "https://download.geysermc.org/v2/projects/geyser/versions/2.11.3/builds/1251/downloads/spigot"
