@@ -33,7 +33,7 @@ a JDK bump means changing that package and this path together.
 | [Chunky](https://modrinth.com/plugin/chunky) | 1.5.3 | World pre-generation, so terrain doesn't generate live under players walking near the edge of explored land. |
 | [AuraSkills](https://modrinth.com/plugin/auraskills) | 2.4.0 | RPG skills/leveling. |
 | [BlueMap](https://modrinth.com/plugin/bluemap) | 5.29 (Paper build) | Live web map of the world, served at `minecraft.jellify.app`. |
-| [AutoTreeChop](https://modrinth.com/plugin/autotreechop) | 1.7.5 | Fells an entire tree from one log break and auto-replants the correct sapling, so chopped forest actually grows back instead of leaving permanent stumps/clear-cuts. |
+| [AutoTreeChop](https://modrinth.com/plugin/autotreechop) | 1.8.0 | Fells an entire tree from one log break and auto-replants the correct sapling, so chopped forest actually grows back instead of leaving permanent stumps/clear-cuts. |
 | [DirectionHUD](https://modrinth.com/plugin/directionhud) | 1.8.4.0 | On-screen HUD with coordinates, facing direction and time of day, plus saved destinations, death locations and player tracking. Each player toggles it with `/hud`. It's server-side and draws in the action bar, so Bedrock players should see it through Geyser too. |
 | [OtterLib](https://modrinth.com/plugin/otterlib) | 0.4.0.1 (beta) | Library DirectionHUD hard-depends on (`depend: [OtterLib]`). Only ever published as betas, so it's pinned on the beta channel. |
 

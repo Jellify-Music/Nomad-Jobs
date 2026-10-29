@@ -41,8 +41,8 @@ locals {
       checksum = "sha1:3d09cf5e219ef82167fd1ca553006c77e21c6d2d"
     }
     "plugins/AutoTreeChop.jar" = {
-      url      = "https://cdn.modrinth.com/data/pwCm0TtE/versions/o9SdPqFP/AutoTreeChop-1.7.5.jar"
-      checksum = "sha1:5b2e013994950afadd3f22b0242dc0500da79c07"
+      url      = "https://cdn.modrinth.com/data/pwCm0TtE/versions/NAgxM8o2/AutoTreeChop-1.8.0.jar"
+      checksum = "sha1:19036162e92db14e53efcd5aa5dce9d8d1fbaf58"
     }
     "plugins/OtterLib.jar" = {
       url      = "https://cdn.modrinth.com/data/zVVpzurY/versions/oxZLx3yz/otterlib-0.4.0.1%2B26.2-paper.jar"
