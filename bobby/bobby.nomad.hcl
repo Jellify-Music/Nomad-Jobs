@@ -21,24 +21,21 @@ job "bobby" {
         # Public Traefik hostname, not a LAN address - this bot runs in the
         # jellify Nomad datacenter, but Jellyfin itself runs on cassiopeia in
         # the separate cosmonautical datacenter (see nomad-jobs/jellyfin.nomad.hcl
-        # in the legacy repo). No trailing slash/path - the bot rejects
-        # /web or /web/index.html suffixes.
-        JELLYFIN_SERVER_ADDRESS = "https://jellyfin.jellify.app"
+        # in the legacy repo).
+        JELLYCHORD_JF_SERVER = "https://jellyfin.jellify.app"
       }
 
       template {
         destination = "secrets/.env"
         env         = true
         data        = <<EOF
-DISCORD_CLIENT_TOKEN="{{ key "jellify/bobby/DISCORD_CLIENT_TOKEN" }}"
-JELLYFIN_AUTHENTICATION_USERNAME="{{ key "jellify/bobby/JELLYFIN_AUTHENTICATION_USERNAME" }}"
-JELLYFIN_AUTHENTICATION_PASSWORD="{{ key "jellify/bobby/JELLYFIN_AUTHENTICATION_PASSWORD" }}"
+JELLYCHORD_DC_TOKEN="{{ key "jellify/bobby/DISCORD_CLIENT_TOKEN" }}"
+JELLYCHORD_JF_APIKEY="{{ key "jellify/bobby/JELLYFIN_API_KEY" }}"
 EOF
       }
 
       config {
-        # Pinned to :dev, not :latest/a tagged release - see CHANGELOG.md.
-        image = "ghcr.io/manuel-rw/jellyfin-discord-music-bot:dev@sha256:c429544911995cff5d5d0bc88c5f89ef96305dde3abb1638bc7cdeb08735866b"
+        image = "ghcr.io/felix920506/jellychord:latest@sha256:72c88b03f27c6468b950cb89dda55904b798b1d3fc03c22b7f319b089b296b6d"
       }
 
       resources {

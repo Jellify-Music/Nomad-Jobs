@@ -12,6 +12,22 @@ Newest entries first, grouped by job.
 
 ## bobby
 
+### 2026-11-11
+
+- **Switched from `manuel-rw/jellyfin-discord-music-bot` to
+  [`felix920506/jellychord`](https://github.com/felix920506/jellychord)**
+  (`ghcr.io/felix920506/jellychord:latest`, digest-pinned so Renovate still
+  opens a PR per new build). Same job ID, Discord bot application and
+  `jellify/bobby/DISCORD_CLIENT_TOKEN` key; the bot now authenticates to
+  Jellyfin with an API key (`jellify/bobby/JELLYFIN_API_KEY`) instead of a
+  username/password, since jellychord has no user-login support. The old
+  `JELLYFIN_AUTHENTICATION_USERNAME`/`_PASSWORD` keys and the dedicated
+  `bobby` Jellyfin account are no longer used. Commands moved from
+  `/summon`/`/play` etc. to the `/jellychord` group; the bot joins the
+  invoker's voice channel on the first queued track, so there's no separate
+  summon step. Also drops the `:dev` pin and its Jellyfin 12 websocket
+  workaround from 2026-09-30 below.
+
 ### 2026-09-30
 
 - **Fixed: bot joined voice but never actually played anything, stuck
