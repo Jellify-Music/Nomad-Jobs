@@ -22,6 +22,8 @@ DISCORD_CLIENT_ID="{{ key "jellify/discord-bot/DISCORD_CLIENT_ID" }}"
 DISCORD_GUILD_ID="{{ key "jellify/discord-bot/DISCORD_GUILD_ID" }}"
 OPENAI_API_KEY="{{ key "jellify/discord-bot/OPENAI_API_KEY" }}"
 OPENAI_BASE_URL="{{ key "jellify/discord-bot/OPENAI_BASE_URL" }}"
+GITHUB_TOKEN="{{ key "jellify/discord-bot/GITHUB_TOKEN" }}"
+GITHUB_ISSUE_CREATOR_ROLE_ID="{{ key "jellify/discord-bot/GITHUB_ISSUE_CREATOR_ROLE_ID" }}"
 EOF
       }
 
