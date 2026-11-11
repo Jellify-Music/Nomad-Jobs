@@ -9,20 +9,20 @@ locals {
   # bumps arrive as PRs, never as a silent change on restart.
   artifacts = {
     "paper.jar" = {
-      url      = "https://fill-data.papermc.io/v1/objects/bf1dcf627364f8a631ab15250d240eb5a8e89faaac523b391e1c61367fce9ff1/paper-26.2-133.jar"
-      checksum = "sha256:bf1dcf627364f8a631ab15250d240eb5a8e89faaac523b391e1c61367fce9ff1"
+      url      = "https://fill-data.papermc.io/v1/objects/ef3dbc68b013deafdbbee3bebf1ba351671ebcda94a8f136809b7532d5ba2fe1/paper-26.2-135.jar"
+      checksum = "sha256:ef3dbc68b013deafdbbee3bebf1ba351671ebcda94a8f136809b7532d5ba2fe1"
     }
     "plugins/Geyser-Spigot.jar" = {
-      url      = "https://download.geysermc.org/v2/projects/geyser/versions/2.11.3/builds/1251/downloads/spigot"
-      checksum = "sha256:0bd00484f688c49e45f84f7c8bf9326f52d48a4c697d72a28526f2fe3f55dc36"
+      url      = "https://download.geysermc.org/v2/projects/geyser/versions/2.12.1/builds/1298/downloads/spigot"
+      checksum = "sha256:4e5740267f8f7e1c0b5d56213e047cfdba57a93c322ace63c05286a5d486c66c"
     }
     "plugins/floodgate-spigot.jar" = {
       url      = "https://download.geysermc.org/v2/projects/floodgate/versions/2.2.5/builds/141/downloads/spigot"
       checksum = "sha256:21570aff9ce17d6983928e8552777760e1ede5050026b04c686b0ae112e6fd7e"
     }
     "plugins/ViaVersion.jar" = {
-      url      = "https://cdn.modrinth.com/data/P1OZGk5p/versions/5WgnasGG/ViaVersion-5.12.1.jar"
-      checksum = "sha1:9d7788788a0b2960edd4bab5fce55f55fa50702f"
+      url      = "https://cdn.modrinth.com/data/P1OZGk5p/versions/Fkfcr89K/ViaVersion-5.12.2.jar"
+      checksum = "sha1:bacb05ac90e820f12d5bef4218f8427ac0f366aa"
     }
     "plugins/ViaBackwards.jar" = {
       url      = "https://cdn.modrinth.com/data/NpvuJQoq/versions/WFO37e8T/ViaBackwards-5.12.2.jar"

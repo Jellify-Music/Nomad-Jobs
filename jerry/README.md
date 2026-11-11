@@ -32,6 +32,8 @@ repo's `jellify/<job>/<KEY_NAME>` convention (see `.agents/AGENTS.md`).
 | `jellify/discord-bot/DISCORD_GUILD_ID` | Jellify Discord server guild ID |
 | `jellify/discord-bot/OPENAI_API_KEY` | Self-hosted inference endpoint API key |
 | `jellify/discord-bot/OPENAI_BASE_URL` | Self-hosted inference endpoint address |
+| `jellify/discord-bot/GITHUB_TOKEN` | GitHub API token for issue creation |
+| `jellify/discord-bot/GITHUB_ISSUE_CREATOR_ROLE_ID` | Discord role ID allowed to create GitHub issues |
 
 The Discord bot application itself (token, invite) has to be created by hand
 in the Discord Developer Portal first, same as `bobby`.
