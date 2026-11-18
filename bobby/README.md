@@ -2,8 +2,8 @@
 
 Discord bot that broadcasts the Jellify Jellyfin library into a Discord
 voice channel, via [`felix920506/jellychord`](https://github.com/felix920506/jellychord)
-(`ghcr.io/felix920506/jellychord:latest`). Runs specifically for
-`The Music Hall` (channel ID `1437161572396044288`) on the Jellify Discord
+(`ghcr.io/felix920506/jellychord`, pinned to an upstream commit tag +
+digest). Runs specifically for `The Music Hall` (channel ID `1437161572396044288`) on the Jellify Discord
 server (guild ID `1351285328400351344`).
 
 Named after Bobby Weir, same convention as [`jerry`](../jerry) (Jerry

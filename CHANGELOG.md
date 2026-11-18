@@ -137,6 +137,12 @@ Newest entries first, grouped by job.
   so 1.5.3 sat there while 1.5.66 was out. The query now uses the pinned
   version's own loaders; the filename-shape check still keeps it on the
   Bukkit jar.
+- **No more `:latest` images.** valheim → `3.8.12` (what `:latest` pointed
+  at), bobby → jellychord's `sha-6e6f07c` commit tag (the digest it was
+  already pinned to; upstream publishes no version tags). jerry is pinned
+  by digest alone for now: the discord-bot build only pushes `:latest`, so
+  there's no other tag to use until it publishes `sha-` tags too.
+  `tests/test_conventions.py` now fails on `:latest` or a missing digest.
 
 ### 2026-10-04
 
