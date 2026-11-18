@@ -21,3 +21,7 @@ resource "nomad_job" "bobby" {
 resource "nomad_job" "penpot" {
   jobspec = file("${path.module}/penpot/penpot.nomad.hcl")
 }
+
+resource "nomad_job" "github-team-sync" {
+  jobspec = file("${path.module}/github-team-sync/github-team-sync.nomad.hcl")
+}

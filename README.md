@@ -21,6 +21,8 @@ at which point its `.nomad.hcl` file's canonical copy lives here.
   members; see [`jerry/README.md`](jerry/README.md#naming) for the
   convention
 - [`penpot`](penpot)
+- [`github-team-sync`](github-team-sync) — keeps Keycloak's `Jellify Members`
+  group in sync with the Jellify-Music GitHub teams (gates `penpot`)
 
 ## Structure
 
@@ -38,8 +40,10 @@ at which point its `.nomad.hcl` file's canonical copy lives here.
 │   └── actions-runner.nomad.hcl
 ├── bobby/                  the Jellyfin-to-Discord voice bot
 │   └── bobby.nomad.hcl
-└── penpot/                 design tool, Keycloak SSO
-    └── penpot.nomad.hcl
+├── penpot/                 design tool, Keycloak SSO
+│   └── penpot.nomad.hcl
+└── github-team-sync/       GitHub teams -> Keycloak group, every 15 min
+    └── github-team-sync.nomad.hcl
 ```
 
 This is a single root module — every job is one `nomad_job` resource in the

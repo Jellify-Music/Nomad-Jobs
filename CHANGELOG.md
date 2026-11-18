@@ -10,7 +10,48 @@ inline HCL comments.
 
 Newest entries first, grouped by job.
 
+## github-team-sync
+
+### 2026-11-18
+
+- **New job.** Periodic (every 15 minutes) Apple `container` task on the
+  macOS/arm64 nodes that mirrors the Jellify-Music `design`, `engineering`
+  and `triage` GitHub teams into Keycloak's `Jellify Members` group, which
+  carries the `jellify-member` realm role Penpot requires. Only team members
+  who've signed in with GitHub at least once (so have a linked Keycloak
+  user) can be added. It refuses to run if GitHub returns no members at all,
+  so a revoked token can't empty the group.
+- Uses its own `github-team-sync` service-account client rather than an
+  admin user. On this Keycloak (26.8) a service-account token also needs the
+  `kc-admin-api` client scope: without that audience the admin API returns a
+  bare 401 even with the right `realm-management` roles.
+
 ## penpot
+
+### 2026-11-18
+
+- **Moved from the Ubuntu/amd64 nodes (`docker`) to the macOS/arm64 nodes
+  (Apple `container`).** All three images are multi-arch. Assets moved from
+  `/mnt/jellify/penpot/assets` to the same share's macOS mount,
+  `/Volumes/Jellify/penpot/assets`. Container bind mounts write as the host
+  user running Nomad (uid 1000) whatever uid the image uses, so the old
+  `chown 1001` is gone. The directory must be created once from an Ubuntu
+  node, though: the share's root isn't writable by uid 1000 (see README).
+- `schema-init`'s script is now inline in `args`, because the container
+  driver doesn't mount the task's `secrets/` dir. Credentials come in as
+  env vars instead. Its memory went from 64 to 256 MiB and the frontend's
+  from 256 to 512 MiB, because each container task is its own Linux VM.
+- **Access limited to Jellify-Music GitHub team members.** The backend now
+  sets `PENPOT_OIDC_ROLES=jellify-member` and `PENPOT_OIDC_ROLES_ATTR=roles`,
+  so Penpot refuses a login without that realm role. The role is granted by
+  the `Jellify Members` group, which
+  [`github-team-sync`](github-team-sync) maintains, and by `Admins`. The
+  Keycloak `penpot` client also uses a `browser-penpot` flow that denies the
+  same users, in the same way `semaphore`'s flow gates on Senior Cosmonaut.
+  But Keycloak doesn't re-run a client's browser flow after an identity
+  provider login, so Penpot's own check is the one that holds for GitHub
+  sign-ins.
+- All images pinned by tag and digest, per the repo-wide convention.
 
 ### 2026-10-05
 
