@@ -35,7 +35,7 @@ EOF
       }
 
       config {
-        image = "ghcr.io/felix920506/jellychord:latest@sha256:72c88b03f27c6468b950cb89dda55904b798b1d3fc03c22b7f319b089b296b6d"
+        image = "ghcr.io/felix920506/jellychord:sha-6e6f07c@sha256:72c88b03f27c6468b950cb89dda55904b798b1d3fc03c22b7f319b089b296b6d"
       }
 
       resources {

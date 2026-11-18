@@ -132,3 +132,16 @@ def test_consul_kv_keys_documented_in_readme(hcl_path):
         f"{readme_path} doesn't document these Consul KV keys referenced in "
         f"{hcl_path.name}: {missing}"
     )
+
+
+IMAGE_RE = re.compile(r'^\s*image\s*=\s*"([^"]+)"', re.MULTILINE)
+
+
+@pytest.mark.parametrize("hcl_path", JOB_HCL_FILES, ids=JOB_DIR_IDS)
+def test_images_are_pinned(hcl_path):
+    """Every image names an explicit version and its digest - never `:latest`,
+    and never a bare tag that can be re-pushed underneath us."""
+    for image in IMAGE_RE.findall(hcl_path.read_text()):
+        name = image.split("@")[0]
+        assert not name.endswith(":latest"), f"{image} uses :latest - pin a version tag"
+        assert "@sha256:" in image, f"{image} has no @sha256: digest"

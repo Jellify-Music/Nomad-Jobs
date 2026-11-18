@@ -8,7 +8,7 @@
     {
       "customType": "regex",
       "description": "Docker images referenced directly in Nomad job specs (not a format Renovate recognizes natively)",
-      "managerFilePatterns": ["\\.nomad\\.hcl$"],
+      "managerFilePatterns": ["/\\.nomad\\.hcl$/"],
       "matchStrings": [
         "image\\s*=\\s*\"(?<depName>[^:@\"]+):(?<currentValue>[^@\"]+)(?:@(?<currentDigest>sha256:[a-f0-9]+))?\""
       ],
@@ -17,7 +17,7 @@
     {
       "customType": "regex",
       "description": "Versions in Nomad job specs annotated with a `# renovate:` comment on the line above (e.g. actions-runner's runner_version local)",
-      "managerFilePatterns": ["\\.nomad\\.hcl$"],
+      "managerFilePatterns": ["/\\.nomad\\.hcl$/"],
       "matchStrings": [
         "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+extractVersion=(?<extractVersion>\\S+))?\\s*\\n[^=\\n]+=\\s*\"(?<currentValue>[^\"]+)\""
       ],
