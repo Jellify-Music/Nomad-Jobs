@@ -35,9 +35,10 @@ Workflows pick an OS by label, so a job only lands on Linux if its
   and runs the runner with it. A JIT runner is ephemeral — it takes exactly
   one job, then deregisters itself — so the next loop iteration registers a
   fresh one. Runner names are `<host>-<unix time>-<random>`. A failed
-  registration is retried in the loop after 30s. A task restart can't
-  recover from one: the PAT file is already deleted, and Nomad doesn't
-  re-render templates on restart.
+  registration is retried in the loop after 30s. Anything else that stops
+  `start.sh` is retried by Nomad restarting the task: the PAT file is gone
+  by then (Nomad renders templates once per allocation), so a restarted
+  `start.sh` reads the same key from the host's Consul agent instead.
 - **Clean work folder** — `_work` (the checkout, `node_modules`, Android
   build output) is deleted before every job, so no job sees the previous
   one's files. Cross-run caching is `actions/cache`'s job.
@@ -91,7 +92,7 @@ applied by Nomadintosh's generic roles. This job hardcodes their paths in its
 
 | Key | Used for |
 |---|---|
-| `jellify/actions-runner/GITHUB_PAT` | Shared by both groups. Fine-grained personal access token scoped to `Jellify-Music/App` with **Administration: read and write** — the permission `generate-jitconfig` requires. Only used to mint JIT configs; `start.sh` reads it once and deletes the rendered file so workflow steps can't read it |
+| `jellify/actions-runner/GITHUB_PAT` | Shared by both groups. Fine-grained personal access token scoped to `Jellify-Music/App` with **Administration: read and write** — the permission `generate-jitconfig` requires. Only used to mint JIT configs. `start.sh` deletes the rendered file after reading it, and reads the key from the host's Consul agent after a task restart. **Consul has no ACLs**, so any workflow step can read this key from the local agent anyway; deleting the file doesn't keep it from CI |
 
 The allocation stays pending until the key exists.
 
@@ -114,7 +115,7 @@ The allocation stays pending until the key exists.
   Homebrew-equivalent roles for every tool, and the macOS group's paths
   don't exist on Ubuntu anyway. The official image keeps the hosts clean
   and the runner version in one Renovate-tracked line.
-- **The PAT goes to `curl` on stdin** (Linux group), so it never appears in
+- **The PAT goes to `curl` on stdin** (both groups), so it never appears in
   a process's argv.
 
 ## History

@@ -558,6 +558,32 @@ an entry here rather than inline comments, per the convention above.
 
 ## actions-runner
 
+### 2026-11-18
+
+- **Fixed: a runner that failed once never came back.** lovelace (the
+  renamed betelgeuse) was missing `/opt/github-actions`, so `start.sh`'s
+  `mkdir -p "$HOME"` failed on its first run. By then it had already
+  deleted `secrets/github_pat`, and since Nomad renders templates once per
+  allocation, every one of 65+ restarts died reading the missing file. The
+  2026-10-26 fix below only covered API errors. Now:
+  - The macOS `start.sh` checks the runner binary, copies it and creates
+    its directories *before* touching the PAT.
+  - Both groups read the PAT from the rendered file the first time (and
+    delete it, as before), and from the host's Consul agent
+    (`CONSUL_HTTP_ADDR`) after a task restart. Any failure now heals on the
+    next restart once its cause is fixed. If Consul itself is down,
+    `start.sh` exits and Nomad retries later.
+  - The macOS group sends the PAT to `curl` on stdin like the Linux group,
+    so it's no longer in `curl`'s argv.
+  - `/opt/github-actions` itself is now created by Nomadable
+    (`directories__github_runners`) rather than by hand.
+- **Note: deleting the PAT file doesn't keep it from CI.** Consul has no
+  ACLs, so any workflow step can read `jellify/actions-runner/GITHUB_PAT`
+  from the local agent (`127.0.0.1:8500` on macOS, the host IP from a Linux
+  container). Reading it from Consul after a restart therefore exposes
+  nothing new. Keeping it from CI for real needs Consul ACLs (or Nomad
+  workload identity with Vault/Nomad Variables).
+
 ### 2026-10-26
 
 - **Fixed: galileo's runner stuck offline after one failed API call.** When
