@@ -30,6 +30,22 @@ Newest entries first, grouped by job.
 
 ## bobby
 
+### 2026-11-11
+
+- **Switched from `manuel-rw/jellyfin-discord-music-bot` to
+  [`felix920506/jellychord`](https://github.com/felix920506/jellychord)**
+  (`ghcr.io/felix920506/jellychord:latest`, digest-pinned so Renovate still
+  opens a PR per new build). Same job ID, Discord bot application and
+  `jellify/bobby/DISCORD_CLIENT_TOKEN` key; the bot now authenticates to
+  Jellyfin with an API key (`jellify/bobby/JELLYFIN_API_KEY`) instead of a
+  username/password, since jellychord has no user-login support. The old
+  `JELLYFIN_AUTHENTICATION_USERNAME`/`_PASSWORD` keys and the dedicated
+  `bobby` Jellyfin account are no longer used. Commands moved from
+  `/summon`/`/play` etc. to the `/jellychord` group; the bot joins the
+  invoker's voice channel on the first queued track, so there's no separate
+  summon step. Also drops the `:dev` pin and its Jellyfin 12 websocket
+  workaround from 2026-09-30 below.
+
 ### 2026-09-30
 
 - **Fixed: bot joined voice but never actually played anything, stuck
@@ -127,6 +143,25 @@ Newest entries first, grouped by job.
 
 ## Repo tooling
 
+### 2026-11-18
+
+- **Renovate's custom managers now match the job specs.** Renovate 41+
+  treats a `managerFilePatterns` entry as a glob unless it's wrapped in
+  `/.../`, so `"\\.nomad\\.hcl$"` matched nothing and none of the Docker
+  images in the `.nomad.hcl` files were tracked. Now `"/\\.nomad\\.hcl$/"`.
+- **The Minecraft updater now sees new Chunky releases.** The Modrinth
+  lookup only asked for `paper`-loader versions. Chunky is pinned to its
+  Bukkit build, whose later versions are tagged `bukkit`/`spigot` only,
+  so 1.5.3 sat there while 1.5.66 was out. The query now uses the pinned
+  version's own loaders; the filename-shape check still keeps it on the
+  Bukkit jar.
+- **No more `:latest` images.** valheim → `3.8.12` (what `:latest` pointed
+  at), bobby → jellychord's `sha-6e6f07c` commit tag (the digest it was
+  already pinned to; upstream publishes no version tags). jerry is pinned
+  by digest alone for now: the discord-bot build only pushes `:latest`, so
+  there's no other tag to use until it publishes `sha-` tags too.
+  `tests/test_conventions.py` now fails on `:latest` or a missing digest.
+
 ### 2026-10-04
 
 - **Added `.github/workflows/minecraft-updates.yml`, and dropped Renovate's
@@ -189,6 +224,51 @@ Newest entries first, grouped by job.
   something to approve into a PR.
 
 ## minecraft
+
+### 2026-10-14
+
+- **Added DirectionHUD (1.8.4.0+26.2) plus its required library OtterLib
+  (0.4.0.1+26.2).** It's an on-screen HUD for coordinates, direction and time
+  of day, with saved destinations and death locations, and each player
+  toggles it with `/hud`. It was picked over a client-side info mod (MiniHUD
+  and similar) for the same reason as BlueMap: it runs on the server, so it
+  works for every Java version ViaVersion bridges and for Bedrock players
+  through Geyser. Alternatives considered: TAB + PlaceholderAPI (more
+  flexible, but much more config for the same result) and the dedicated
+  "day counter" plugins on Modrinth (none had published a 26.2 build).
+  DirectionHUD's `plugin.yml` hard-depends on OtterLib (`depend:
+  [OtterLib]`). Its Modrinth metadata also lists Fabric API, but that only
+  applies to the Fabric build and is ignored here. OtterLib has only ever
+  been published as betas, so it is this job's one non-release pin.
+- **Update workflow: two fixes so the new pins actually get bump PRs.**
+  `modrinth_update` used to skip everything except `release`, which would
+  have left OtterLib pinned forever. It now also accepts `beta` when the
+  current pin is already a beta (never `alpha`). It also compared the
+  pinned URL's percent-encoded filename (`...1.8.4.0%2B26.2.jar`) against
+  the API's decoded one (`...1.8.4.0+26.2.jar`). Those never matched, so any
+  file with a `+` in its name, which includes both new pins, would never
+  have been offered an update. The pinned filename is now decoded first.
+- **Fixed: `test_apply_to_readme` broke on every merged bump PR.** It ran
+  against the live README with the old version numbers hardcoded, so
+  merging the Paper/Geyser/BlueMap bumps (#12, #13, #17) turned `main` red.
+  It now uses a fixed set of sample table rows.
+- **Raised the deployment `healthy_deadline` from Nomad's 5m default to
+  10m** (and `progress_deadline` from 10m to 15m, since it has to stay above
+  the healthy deadline). A cold start runs the `seed-data` restore from NFS,
+  then downloads 13 artifacts, then boots Paper, and that regularly ran past
+  5m, marking the alloc unhealthy before the server was even up.
+- **Fixed: the ViaVersion 5.12.0 -> 5.12.1 bump (#15) left the server unable
+  to start.** Every attempt failed with `Checksums did not match ... Expected:
+  9d7788... Got: f0154d7...`, even though the pin was correct (Modrinth's API
+  and a fresh download both give `9d7788...`). `seed-data` had restored the
+  old 5.12.0 jar from NFS, and the artifact getter writes into an existing
+  file without truncating it. 5.12.1 is 558 bytes smaller than 5.12.0, so the
+  result was the new jar followed by the old jar's last 558 bytes (rebuilding
+  that by hand gives `f0154d7...` exactly). Retries and a fresh alloc didn't
+  help, because the sticky `ephemeral_disk` carried the bad file over each
+  time. Any bump to a smaller file would hit the same thing. `seed-data` now
+  deletes every managed artifact path after the restore, so each one is
+  downloaded fresh.
 
 ### 2026-10-04
 
@@ -514,6 +594,46 @@ notable operational incidents so far. Future changes to it should still get
 an entry here rather than inline comments, per the convention above.
 
 ## actions-runner
+
+### 2026-11-18
+
+- **Fixed: a runner that failed once never came back.** lovelace (the
+  renamed betelgeuse) was missing `/opt/github-actions`, so `start.sh`'s
+  `mkdir -p "$HOME"` failed on its first run. By then it had already
+  deleted `secrets/github_pat`, and since Nomad renders templates once per
+  allocation, every one of 65+ restarts died reading the missing file. The
+  2026-10-26 fix below only covered API errors. Now:
+  - The macOS `start.sh` checks the runner binary, copies it and creates
+    its directories *before* touching the PAT.
+  - Both groups read the PAT from the rendered file the first time (and
+    delete it, as before), and from the host's Consul agent
+    (`CONSUL_HTTP_ADDR`) after a task restart. Any failure now heals on the
+    next restart once its cause is fixed. If Consul itself is down,
+    `start.sh` exits and Nomad retries later.
+  - The macOS group sends the PAT to `curl` on stdin like the Linux group,
+    so it's no longer in `curl`'s argv.
+  - `/opt/github-actions` itself is now created by Nomadable
+    (`directories__github_runners`) rather than by hand.
+- **Note: deleting the PAT file doesn't keep it from CI.** Consul has no
+  ACLs, so any workflow step can read `jellify/actions-runner/GITHUB_PAT`
+  from the local agent (`127.0.0.1:8500` on macOS, the host IP from a Linux
+  container). Reading it from Consul after a restart therefore exposes
+  nothing new. Keeping it from CI for real needs Consul ACLs (or Nomad
+  workload identity with Vault/Nomad Variables).
+
+### 2026-10-26
+
+- **Fixed: galileo's runner stuck offline after one failed API call.** When
+  the 2.338.1 bump rolled out on 2026-10-25, galileo's first
+  `generate-jitconfig` call got a 409 from GitHub (most likely a runner-name
+  clash with the outgoing allocation). `set -e` exited `start.sh`, and by
+  then it had already deleted `secrets/github_pat`. Nomad doesn't re-render
+  templates on a task restart, so every restart after that died reading the
+  missing file. That was 480+ restarts and nothing registered, while the
+  allocation sat in `pending`. A failed `generate-jitconfig` now retries
+  inside the loop, where the PAT is still in memory, instead of exiting.
+  Runner names also get a `$RANDOM` suffix so two registrations in the same
+  second can't clash. Both groups had the same bug.
 
 ### 2026-10-04 (Linux runners)
 

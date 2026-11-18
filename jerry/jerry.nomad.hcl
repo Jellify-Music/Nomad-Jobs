@@ -22,11 +22,13 @@ DISCORD_CLIENT_ID="{{ key "jellify/discord-bot/DISCORD_CLIENT_ID" }}"
 DISCORD_GUILD_ID="{{ key "jellify/discord-bot/DISCORD_GUILD_ID" }}"
 OPENAI_API_KEY="{{ key "jellify/discord-bot/OPENAI_API_KEY" }}"
 OPENAI_BASE_URL="{{ key "jellify/discord-bot/OPENAI_BASE_URL" }}"
+GITHUB_TOKEN="{{ key "jellify/discord-bot/GITHUB_TOKEN" }}"
+GITHUB_ISSUE_CREATOR_ROLE_ID="{{ key "jellify/discord-bot/GITHUB_ISSUE_CREATOR_ROLE_ID" }}"
 EOF
       }
 
       config {
-        image = "ghcr.io/jellify-music/discord-bot:latest"
+        image = "ghcr.io/jellify-music/discord-bot@sha256:6728736eaa22284258ef514c050125fb24e470108904439608eba08e33f93995"
 
       }
 

@@ -9,24 +9,24 @@ locals {
   # bumps arrive as PRs, never as a silent change on restart.
   artifacts = {
     "paper.jar" = {
-      url      = "https://fill-data.papermc.io/v1/objects/b1d8f6bfa1b6101fa8e947b53041cb3bdf5540e7b83b6547ca19ba7edefeb083/paper-26.2-129.jar"
-      checksum = "sha256:b1d8f6bfa1b6101fa8e947b53041cb3bdf5540e7b83b6547ca19ba7edefeb083"
+      url      = "https://fill-data.papermc.io/v1/objects/ef3dbc68b013deafdbbee3bebf1ba351671ebcda94a8f136809b7532d5ba2fe1/paper-26.2-135.jar"
+      checksum = "sha256:ef3dbc68b013deafdbbee3bebf1ba351671ebcda94a8f136809b7532d5ba2fe1"
     }
     "plugins/Geyser-Spigot.jar" = {
-      url      = "https://download.geysermc.org/v2/projects/geyser/versions/2.11.3/builds/1248/downloads/spigot"
-      checksum = "sha256:20f14813931758aa2e951aae3b5d333f7212fa9b059afffc6a782a2eb3bb2a81"
+      url      = "https://download.geysermc.org/v2/projects/geyser/versions/2.12.1/builds/1304/downloads/spigot"
+      checksum = "sha256:92205fd804d566c5c1165197fc4fd586abc04b4e35b0270315ef7a57f693f33b"
     }
     "plugins/floodgate-spigot.jar" = {
       url      = "https://download.geysermc.org/v2/projects/floodgate/versions/2.2.5/builds/141/downloads/spigot"
       checksum = "sha256:21570aff9ce17d6983928e8552777760e1ede5050026b04c686b0ae112e6fd7e"
     }
     "plugins/ViaVersion.jar" = {
-      url      = "https://cdn.modrinth.com/data/P1OZGk5p/versions/FaishMnD/ViaVersion-5.12.0.jar"
-      checksum = "sha1:7486c37c91b3cc892d37ee9a05470bf6ec49a59f"
+      url      = "https://cdn.modrinth.com/data/P1OZGk5p/versions/Fkfcr89K/ViaVersion-5.12.2.jar"
+      checksum = "sha1:bacb05ac90e820f12d5bef4218f8427ac0f366aa"
     }
     "plugins/ViaBackwards.jar" = {
-      url      = "https://cdn.modrinth.com/data/NpvuJQoq/versions/SxGhdsPK/ViaBackwards-5.12.0.jar"
-      checksum = "sha1:3603c85784c41387c56ec76c016c21e0a1ae303a"
+      url      = "https://cdn.modrinth.com/data/NpvuJQoq/versions/WFO37e8T/ViaBackwards-5.12.2.jar"
+      checksum = "sha1:fa763fa46107433b2a8cc866d7796a26be587850"
     }
     "plugins/Chunky.jar" = {
       url      = "https://cdn.modrinth.com/data/fALzjamp/versions/MdY6JATr/Chunky-Bukkit-1.5.3.jar"
@@ -37,12 +37,20 @@ locals {
       checksum = "sha1:f8c6c4a73bf853755108578625cf5ca212957b53"
     }
     "plugins/BlueMap.jar" = {
-      url      = "https://cdn.modrinth.com/data/swbUV1cr/versions/pILlMIlN/bluemap-5.28-paper.jar"
-      checksum = "sha1:6e9d1bb29a43aa24108b5cb4b61de6efec1f521a"
+      url      = "https://cdn.modrinth.com/data/swbUV1cr/versions/uHQIrUdf/bluemap-5.29-paper.jar"
+      checksum = "sha1:3d09cf5e219ef82167fd1ca553006c77e21c6d2d"
     }
     "plugins/AutoTreeChop.jar" = {
-      url      = "https://cdn.modrinth.com/data/pwCm0TtE/versions/o9SdPqFP/AutoTreeChop-1.7.5.jar"
-      checksum = "sha1:5b2e013994950afadd3f22b0242dc0500da79c07"
+      url      = "https://cdn.modrinth.com/data/pwCm0TtE/versions/NAgxM8o2/AutoTreeChop-1.8.0.jar"
+      checksum = "sha1:19036162e92db14e53efcd5aa5dce9d8d1fbaf58"
+    }
+    "plugins/OtterLib.jar" = {
+      url      = "https://cdn.modrinth.com/data/zVVpzurY/versions/oxZLx3yz/otterlib-0.4.0.1%2B26.2-paper.jar"
+      checksum = "sha1:358a62f7ff02341e267f41b8f3947f1105bba572"
+    }
+    "plugins/DirectionHUD.jar" = {
+      url      = "https://cdn.modrinth.com/data/H8WCXRtb/versions/u876aZ5C/directionhud-paper-1.8.4.0%2B26.2.jar"
+      checksum = "sha1:27c72b481344358e6b9d6b9b249d82412abb4447"
     }
     "world/datapacks/Terralith.zip" = {
       url      = "https://cdn.modrinth.com/data/8oi3bsk5/versions/CzijfXJQ/Terralith_26.2_v2.6.4.zip"
@@ -88,6 +96,11 @@ job "minecraft" {
       interval = "30m"
       delay    = "15s"
       mode     = "delay"
+    }
+
+    update {
+      healthy_deadline  = "10m"
+      progress_deadline = "15m"
     }
 
     network {
@@ -139,6 +152,10 @@ job "minecraft" {
           fi
 
           mkdir -p "$local_dir/config" "$local_dir/plugins" "$local_dir/world/datapacks"
+
+          # The artifact getter overwrites in place without truncating, so a
+          # leftover larger jar corrupts a smaller replacement - clear them.
+          rm -f ${join(" ", formatlist("\"$local_dir/%s\"", keys(local.artifacts)))}
 
           if [ ! -s "$local_dir/server.properties" ]; then
             cat > "$local_dir/server.properties" <<-'PROPS'

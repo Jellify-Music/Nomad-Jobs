@@ -68,7 +68,7 @@ job "valheim" {
       # tree is persisted, not just the world save, so a redeploy doesn't
       # have to re-download BepInEx/mods from Thunderstore every time.
       config {
-        image = "mbround18/valheim:latest"
+        image = "mbround18/valheim:3.8.12@sha256:3c8debff256d54f94b2c8e6389f477ce2d4e57b796baeb51ef37a77df4141024"
         ports = ["game", "query", "extra"]
 
         volumes = [

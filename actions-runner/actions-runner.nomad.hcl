@@ -20,9 +20,9 @@ job "actions-runner" {
       value     = "darwin"
     }
 
-    # start.sh loops forever on its own (one JIT registration per CI job), so
-    # a task exit is always a failure - usually GitHub's API being
-    # unreachable. Keep retrying rather than ever giving up on the node.
+    # start.sh loops forever on its own (one JIT registration per CI job) and
+    # retries API errors itself, so a task exit is always a failure. Keep
+    # retrying rather than ever giving up on the node.
     restart {
       attempts = 3
       interval = "10m"
@@ -35,7 +35,8 @@ job "actions-runner" {
 
       # Fine-grained PAT (Jellify-Music/App, Administration: read & write),
       # only used to mint single-use JIT runner configs. start.sh reads it
-      # once and deletes the file, so workflow steps can't read it.
+      # and deletes the file; after a task restart it reads the key from
+      # Consul instead (see CHANGELOG.md).
       template {
         destination = "secrets/github_pat"
         perms       = "0600"
@@ -53,9 +54,6 @@ EOF
 #!/bin/bash
 set -euo pipefail
 
-pat="$(tr -d '[:space:]' < "$NOMAD_SECRETS_DIR/github_pat")"
-rm -f "$NOMAD_SECRETS_DIR/github_pat"
-
 # The runner binary is pre-warmed by Nomadable (its tarball has more files
 # than Nomad's artifact getter allows). Each allocation gets its own copy:
 # the runner self-updates in place, and Ansible prunes old versions.
@@ -67,6 +65,17 @@ runner_dir="$NOMAD_TASK_DIR/runner"
 rm -rf "$runner_dir"
 cp -R "$RUNNER_DIST/" "$runner_dir"
 mkdir -p "$HOME" "$AGENT_TOOLSDIRECTORY"
+
+# Nomad renders templates once per allocation, not on a task restart, and
+# this script deletes the file. After a restart, read the same key from the
+# host's Consul agent instead, or the runner could never register again.
+pat_file="$NOMAD_SECRETS_DIR/github_pat"
+if [ -s "$pat_file" ]; then
+  pat="$(tr -d '[:space:]' < "$pat_file")"
+  rm -f "$pat_file"
+else
+  pat="$(curl -fsS "http://$CONSUL_HTTP_ADDR/v1/kv/jellify/actions-runner/GITHUB_PAT?raw" | tr -d '[:space:]')"
+fi
 
 child=""
 trap 'if [ -n "$child" ]; then kill -TERM "$child" 2>/dev/null; wait "$child"; fi; exit 0' TERM INT
@@ -88,13 +97,20 @@ while true; do
   # A JIT config registers an ephemeral runner that takes exactly one job
   # and then deregisters itself, so nothing is configured on disk and no
   # stale registration outlives the allocation.
-  name="$(hostname -s)-$(date +%s)"
-  response="$(curl -fsS -X POST \
-    -H "Authorization: Bearer $pat" \
+  #
+  # API errors (a 409 name clash, GitHub down) are retried here rather than
+  # by restarting the task. The PAT goes to curl on stdin, never in its argv.
+  name="$(hostname -s)-$(date +%s)-$RANDOM"
+  if ! response="$(printf 'Authorization: Bearer %s\n' "$pat" | curl -fsS -X POST \
+    -H @- \
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runners/generate-jitconfig" \
-    -d "{\"name\":\"$name\",\"runner_group_id\":1,\"labels\":$labels,\"work_folder\":\"_work\"}")"
+    -d "{\"name\":\"$name\",\"runner_group_id\":1,\"labels\":$labels,\"work_folder\":\"_work\"}")"; then
+    echo "generate-jitconfig failed for $name, retrying in 30s" >&2
+    sleep 30
+    continue
+  fi
   jit="$(printf '%s' "$response" | plutil -extract encoded_jit_config raw -o - -)"
 
   echo "starting runner $name"
@@ -115,6 +131,7 @@ EOF
         GITHUB_REPOSITORY = "Jellify-Music/App"
         RUNNER_LABELS     = "self-hosted,macOS,ARM64"
         RUNNER_DIST       = "/opt/actions-runner/current"
+        CONSUL_HTTP_ADDR  = "127.0.0.1:8500"
 
         # Everything CI writes outside the allocation lands under
         # /opt/github-actions instead of violet's real home: ~/.gradle,
@@ -176,8 +193,7 @@ EOF
       # which it runs as the image's unprivileged `runner` user.
       user = "root"
 
-      # Same PAT as the macOS group. start.sh reads it once and deletes the
-      # file.
+      # Same PAT as the macOS group, read and deleted the same way.
       template {
         destination = "secrets/github_pat"
         perms       = "0600"
@@ -194,8 +210,16 @@ EOF
 #!/bin/bash
 set -euo pipefail
 
-pat="$(tr -d '[:space:]' < "$NOMAD_SECRETS_DIR/github_pat")"
-rm -f "$NOMAD_SECRETS_DIR/github_pat"
+# Nomad renders templates once per allocation, not on a task restart, and
+# this script deletes the file. After a restart, read the same key from the
+# host's Consul agent instead, or the runner could never register again.
+pat_file="$NOMAD_SECRETS_DIR/github_pat"
+if [ -s "$pat_file" ]; then
+  pat="$(tr -d '[:space:]' < "$pat_file")"
+  rm -f "$pat_file"
+else
+  pat="$(curl -fsS "http://$CONSUL_HTTP_ADDR/v1/kv/jellify/actions-runner/GITHUB_PAT?raw" | tr -d '[:space:]')"
+fi
 
 # The image gives `runner` passwordless sudo. Without it, CI jobs can't
 # read this root process's memory, and with it the PAT.
@@ -215,14 +239,19 @@ while true; do
   # Every CI job starts from an empty work folder.
   rm -rf /home/runner/_work
 
-  # The PAT goes to curl on stdin, never in its argv.
-  name="$host-$(date +%s)"
-  response="$(printf 'Authorization: Bearer %s\n' "$pat" | curl -fsS -X POST \
+  # The PAT goes to curl on stdin, never in its argv. API errors are retried
+  # here for the same reason as the macOS group.
+  name="$host-$(date +%s)-$RANDOM"
+  if ! response="$(printf 'Authorization: Bearer %s\n' "$pat" | curl -fsS -X POST \
     -H @- \
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runners/generate-jitconfig" \
-    -d "{\"name\":\"$name\",\"runner_group_id\":1,\"labels\":$labels,\"work_folder\":\"_work\"}")"
+    -d "{\"name\":\"$name\",\"runner_group_id\":1,\"labels\":$labels,\"work_folder\":\"_work\"}")"; then
+    echo "generate-jitconfig failed for $name, retrying in 30s" >&2
+    sleep 30
+    continue
+  fi
   jit="$(printf '%s' "$response" | jq -r .encoded_jit_config)"
 
   echo "starting runner $name"
@@ -242,6 +271,8 @@ EOF
         GITHUB_REPOSITORY = "Jellify-Music/App"
         RUNNER_LABELS     = "self-hosted,Linux,X64"
         NODE_NAME         = "${node.unique.name}"
+        # The host's Consul agent; 127.0.0.1 would be the container.
+        CONSUL_HTTP_ADDR = "${attr.unique.network.ip-address}:8500"
 
         # actions/setup-* downloads live outside _work, so they last for the
         # allocation instead of one job.
@@ -254,7 +285,7 @@ EOF
       }
 
       config {
-        image   = "ghcr.io/actions/actions-runner:2.337.0@sha256:e5496277be5d09bc968b3d64911b74e219ac4a3f2edce956a3ecf9271bea1ef4"
+        image   = "ghcr.io/actions/actions-runner:2.338.1@sha256:e275409999c37162649aa050ca573f03eab2eabcb3a1e7fcc47548de6b4f9690"
         command = "/bin/bash"
         args    = ["/local/start.sh"]
         init    = true
