@@ -37,6 +37,30 @@ ssh -t euler.jellify.app 'sudo install -d -o 1000 -g 20 -m 0755 /mnt/jellify/pen
 Until it exists, `ensure-assets-dir` fails with "Permission denied" and the
 allocation doesn't start.
 
+### One-time setup: Network Volumes permission (each Mac)
+
+The backend and frontend bind-mount a path under `/Volumes/Jellify`. The
+first time `container-runtime-linux` touches a network volume, macOS asks
+for **Network Volumes** access (TCC `kTCCServiceSystemPolicyNetworkVolumes`).
+On a headless Mac mini nobody answers the prompt, so the container stays at
+"Starting container" forever and the task never starts or fails. This was
+found 2026-11-18 on galileo, hopper and lovelace.
+
+On each Mac, through Screen Sharing: start any container with a
+`/Volumes/Jellify` mount and click **Allow** on the prompt. If the prompt
+isn't showing, turn on `container-runtime-linux` under System Settings →
+Privacy & Security → Files & Folders → Network Volumes. Check it with:
+
+```sh
+container run --rm -v /Volumes/Jellify/penpot/assets:/d docker.io/library/alpine:3.22 ls /d
+```
+
+That should return in a few seconds. Don't test with a short timeout and
+walk away: a killed run leaves a stopped container plus a running
+`container-runtime-linux` process behind, and those block later starts until
+you remove them (`container ls -a`, then kill that container's runtime
+process and `container rm` it).
+
 The upstream compose file's `admin-console` and `mcp` services aren't
 deployed. Both are optional, and the frontend's entrypoint drops their nginx
 routes when their flags are off.

@@ -52,6 +52,10 @@ Newest entries first, grouped by job.
   provider login, so Penpot's own check is the one that holds for GitHub
   sign-ins.
 - All images pinned by tag and digest, per the repo-wide convention.
+- **Needs a one-time TCC approval on each Mac before it can start:**
+  bind-mounting `/Volumes/Jellify` makes `container-runtime-linux` ask for
+  Network Volumes access, and that prompt blocks container start on a
+  headless host (see README).
 
 ### 2026-10-05
 

@@ -139,6 +139,12 @@ Found while moving `penpot` and adding `github-team-sync` (2026-11-18):
   uid. The Jellify NFS share is at `/Volumes/Jellify` on all three Macs, but
   its root is 988:988 0755. A new top-level directory has to be created
   from an Ubuntu node with `sudo install -d -o 1000 -g 20`.
+- **NFS bind mounts need TCC "Network Volumes" approval per host.** Without
+  it, `container-runtime-linux` waits on a GUI prompt nobody sees, and the
+  task hangs at "Starting container". See `penpot/README.md`'s one-time
+  setup. Check with `log show --predicate 'subsystem == "com.apple.TCC"'`
+  for `AUTHREQ_PROMPTING ... SystemPolicyNetworkVolumes`. Leftover
+  containers from killed runs block later starts, so clean them up.
 - **Each task is its own Linux VM.** `memory` covers the guest kernel too,
   so 64 MiB won't boot. Use 256 MiB or more.
 - Containers can resolve `*.service.consul` and reach the LAN and the
