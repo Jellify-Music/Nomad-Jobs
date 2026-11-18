@@ -125,6 +125,19 @@ Newest entries first, grouped by job.
 
 ## Repo tooling
 
+### 2026-11-18
+
+- **Renovate's custom managers now match the job specs.** Renovate 41+
+  treats a `managerFilePatterns` entry as a glob unless it's wrapped in
+  `/.../`, so `"\\.nomad\\.hcl$"` matched nothing and none of the Docker
+  images in the `.nomad.hcl` files were tracked. Now `"/\\.nomad\\.hcl$/"`.
+- **The Minecraft updater now sees new Chunky releases.** The Modrinth
+  lookup only asked for `paper`-loader versions. Chunky is pinned to its
+  Bukkit build, whose later versions are tagged `bukkit`/`spigot` only,
+  so 1.5.3 sat there while 1.5.66 was out. The query now uses the pinned
+  version's own loaders; the filename-shape check still keeps it on the
+  Bukkit jar.
+
 ### 2026-10-04
 
 - **Added `.github/workflows/minecraft-updates.yml`, and dropped Renovate's
