@@ -3,6 +3,8 @@ the Minecraft artifact update workflow. Nothing here touches the network -
 the upstream lookups were exercised by hand when the workflow was added.
 """
 import importlib.util
+import json
+import urllib.parse
 from pathlib import Path
 
 import pytest
@@ -104,8 +106,10 @@ def test_apply_to_readme_reports_a_miss():
 class FakeClient:
     def __init__(self, current, candidates):
         self.current, self.candidates = current, candidates
+        self.urls = []
 
     def json(self, url):
+        self.urls.append(url)
         return self.current if "/version/" in url else self.candidates
 
 
@@ -136,3 +140,12 @@ def test_modrinth_update_only_takes_betas_for_a_beta_pin(pinned, expect_update):
     alpha = modrinth_version("1.2", "alpha", "2026-03-01T00:00:00Z", "lib-1.2.jar")
     update = ma.modrinth_update(FakeClient(current, [alpha, beta, current]), modrinth_match("lib-1.0.jar"), "26.2")
     assert (update.new if update else None) == ("1.1" if expect_update else None)
+
+
+def test_modrinth_update_queries_the_pins_own_loaders():
+    current = modrinth_version("1.5.3", "release", "2026-01-01T00:00:00Z", "Chunky-Bukkit-1.5.3.jar")
+    current["loaders"] = ["bukkit", "folia", "paper", "spigot"]
+    client = FakeClient(current, [])
+    ma.modrinth_update(client, modrinth_match("Chunky-Bukkit-1.5.3.jar"), "26.2")
+    query = urllib.parse.parse_qs(urllib.parse.urlparse(client.urls[-1]).query)
+    assert json.loads(query["loaders"][0]) == ["bukkit", "folia", "paper", "spigot"]

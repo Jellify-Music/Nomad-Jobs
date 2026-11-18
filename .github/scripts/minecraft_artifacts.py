@@ -162,7 +162,10 @@ def _published(version: dict) -> datetime:
 def modrinth_update(client: Client, m: re.Match, game_version: str) -> Update | None:
     api = "https://api.modrinth.com/v2"
     current = client.json(f"{api}/version/{m['version']}")
-    loaders = ["datapack"] if "datapack" in current["loaders"] else ["paper"]
+    # Query by the pin's own loaders, not just "paper": a Bukkit build (Chunky)
+    # tags its later versions bukkit/spigot only, so a paper-only query never
+    # sees them.
+    loaders = ["datapack"] if "datapack" in current["loaders"] else current["loaders"]
     query = urllib.parse.urlencode(
         {"loaders": json.dumps(loaders), "game_versions": json.dumps([game_version])}
     )
