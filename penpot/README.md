@@ -122,26 +122,31 @@ It's enforced twice:
 - **Keycloak** denies users without the role before they ever reach
   Penpot. The `penpot` client's browser flow override, `browser-penpot` (a
   copy of `semaphore`'s gate flow), covers username/password logins. The
-  `github` identity provider's post-login flow covers GitHub logins. A
-  denied GitHub login is logged as `IDENTITY_PROVIDER_POST_LOGIN_ERROR`
-  with `error="access_denied"`.
+  `github` identity provider's post-login flow, `github post login` (see
+  below), covers GitHub logins. A denied GitHub login is logged as
+  `IDENTITY_PROVIDER_POST_LOGIN_ERROR` with `error="access_denied"`.
 
-### "Invalid username or password" after a GitHub sign-in
+### The `github post login` flow
 
-This is Keycloak's message for a GitHub login that the post-login flow
-already denied. Going back or refreshing reuses that denied login session.
-Keycloak then logs `IDENTITY_PROVIDER_POST_LOGIN_ERROR` with
-`error="invalid_user_credentials"` and shows this misleading message. The
-person's credentials are fine. Check the following, in order:
+The `github` identity provider's post-login flow is set up like this:
 
-1. Is the person on one of the synced GitHub teams? Has a sync run since
-   their first sign-in? The job's log lists everyone it skipped.
-2. Have them open `https://penpot.jellify.app` in a new tab or private
-   window, not back/refresh on the error page.
+```
+github post login
+├─ github jellify gate        CONDITIONAL
+│  ├─ Condition - user role   jellify-member, negated
+│  └─ Deny access             "GitHub sign-in is only for members of ..."
+└─ Allow access               REQUIRED
+```
 
-Seen 2026-11-19 with thirty6down. He was added to `engineering` just after
-the 05:15 CST sync, so his first sign-in was denied. The next sync added
-him, and a fresh sign-in was all he needed.
+**Allow access has to stay.** A flow whose only step is a skipped
+conditional sub-flow counts as failed, because nothing in it succeeded.
+Without that step, every user who *has* the role failed GitHub sign-in with
+"Invalid username or password". Keycloak logs that as
+`IDENTITY_PROVIDER_POST_LOGIN_ERROR` with `error="invalid_user_credentials"`.
+Only users without the role got the intended Deny access message. Allow
+access runs after the gate, so it never lets a non-member through.
+
+This applies to GitHub sign-ins for every app in the realm, not just Penpot.
 
 Penpot's role names can't contain spaces, because `PENPOT_OIDC_ROLES` is
 split on whitespace. That's why this role is `jellify-member` rather than

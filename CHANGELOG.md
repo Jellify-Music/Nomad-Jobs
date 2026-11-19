@@ -30,16 +30,22 @@ Newest entries first, grouped by job.
 
 ### 2026-11-19
 
+- **Fixed GitHub sign-in for everyone with `jellify-member`.** The `github`
+  identity provider's post-login flow, `github post login`, contained only a
+  conditional sub-flow: "no `jellify-member` role → Deny access". For a user
+  who *has* the role, that sub-flow is skipped. Nothing in the flow
+  succeeded, so Keycloak failed the login as `invalid_user_credentials` and
+  showed "Invalid username or password". Found when thirty6down, newly added
+  to `engineering` and synced into `Jellify Members`, couldn't sign in from
+  any fresh session. Added a top-level **Allow access** step (Required)
+  after the gate. Keycloak config is managed by hand, so this was a change
+  through the admin API, not a code change.
 - **Docs fix: Keycloak does gate GitHub logins.** The 2026-11-18 entry and
   the README said only Penpot's role check stops GitHub sign-ins. That's
-  wrong: the `github` identity provider has a post-login flow that denies
-  users without `jellify-member`. Found when thirty6down got "Invalid
-  username or password." He'd joined `engineering` after the last sync, so
-  his first GitHub login was denied (`access_denied`). That login still
-  created and linked his Keycloak user. Each retry of the same denied
-  session then logged `invalid_user_credentials`. The next sync added him to
-  `Jellify Members`, so a fresh sign-in was the fix. The README now has a
-  troubleshooting section for this.
+  wrong: `github post login` denies users without `jellify-member`, and the
+  README now documents the flow. A new team member's first GitHub sign-in is
+  still refused, but it creates and links their Keycloak user, so the next
+  sync can add them.
 
 ### 2026-11-18
 
