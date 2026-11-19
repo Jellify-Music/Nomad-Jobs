@@ -16,7 +16,10 @@ driver doesn't mount the task's `local/` or `secrets/` dirs into the VM.
 2. Looks each one up in Keycloak by GitHub user ID, through the `github`
    identity provider link. Team members who have never signed in with
    GitHub have no linked user yet, so they're logged as `skip` and picked up
-   on a later run.
+   on a later run. That first sign-in is denied by the `github` provider's
+   post-login flow, because they don't have the role yet, but it still
+   creates and links their user. See penpot's README for the misleading
+   "Invalid username or password" this causes.
 3. Adds linked team members to `Jellify Members` and removes anyone else
    from it, including people added by hand. Manual access belongs in
    another group with the role, as with `Admins`.

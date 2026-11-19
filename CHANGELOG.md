@@ -28,6 +28,19 @@ Newest entries first, grouped by job.
 
 ## penpot
 
+### 2026-11-19
+
+- **Docs fix: Keycloak does gate GitHub logins.** The 2026-11-18 entry and
+  the README said only Penpot's role check stops GitHub sign-ins. That's
+  wrong: the `github` identity provider has a post-login flow that denies
+  users without `jellify-member`. Found when thirty6down got "Invalid
+  username or password." He'd joined `engineering` after the last sync, so
+  his first GitHub login was denied (`access_denied`). That login still
+  created and linked his Keycloak user. Each retry of the same denied
+  session then logged `invalid_user_credentials`. The next sync added him to
+  `Jellify Members`, so a fresh sign-in was the fix. The README now has a
+  troubleshooting section for this.
+
 ### 2026-11-18
 
 - **Moved from the Ubuntu/amd64 nodes (`docker`) to the macOS/arm64 nodes
