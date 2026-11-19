@@ -106,10 +106,11 @@ of two groups:
 
 - `Jellify Members`, which [`github-team-sync`](../github-team-sync) keeps
   in sync with the Jellify-Music `design`, `engineering` and `triage` GitHub
-  teams. A team member gets in after signing in to Keycloak with GitHub once
-  (which links their GitHub account) and the next sync run, at most 15
-  minutes later. Someone who already has a Cosmonautical account can link
-  GitHub from the account console instead.
+  teams. A new team member's first GitHub sign-in is always refused (see
+  below), but it still creates their Keycloak user and links their GitHub
+  account. The next sync run, at most 15 minutes later, adds them to the
+  group, and their next sign-in works. Someone who already has a
+  Cosmonautical account can link GitHub from the account console instead.
 - `Admins`, so Senior Cosmonauts don't need a linked GitHub account.
 
 It's enforced twice:
@@ -118,11 +119,29 @@ It's enforced twice:
   `PENPOT_OIDC_ROLES_ATTR=roles`) refuses any login whose ID token's `roles`
   claim lacks it. The `penpot` client's "realm roles (penpot gate)" mapper
   adds that claim. This check covers every login path.
-- **Keycloak**: the client's browser flow override, `browser-penpot`, is a
-  copy of `semaphore`'s gate flow that denies users without the role. It
-  shows a clearer error, but Keycloak doesn't re-run a client's browser flow
-  after a GitHub (identity provider) login. So it doesn't stop those logins,
-  and Penpot's check does.
+- **Keycloak** denies users without the role before they ever reach
+  Penpot. The `penpot` client's browser flow override, `browser-penpot` (a
+  copy of `semaphore`'s gate flow), covers username/password logins. The
+  `github` identity provider's post-login flow covers GitHub logins. A
+  denied GitHub login is logged as `IDENTITY_PROVIDER_POST_LOGIN_ERROR`
+  with `error="access_denied"`.
+
+### "Invalid username or password" after a GitHub sign-in
+
+This is Keycloak's message for a GitHub login that the post-login flow
+already denied. Going back or refreshing reuses that denied login session.
+Keycloak then logs `IDENTITY_PROVIDER_POST_LOGIN_ERROR` with
+`error="invalid_user_credentials"` and shows this misleading message. The
+person's credentials are fine. Check the following, in order:
+
+1. Is the person on one of the synced GitHub teams? Has a sync run since
+   their first sign-in? The job's log lists everyone it skipped.
+2. Have them open `https://penpot.jellify.app` in a new tab or private
+   window, not back/refresh on the error page.
+
+Seen 2026-11-19 with thirty6down. He was added to `engineering` just after
+the 05:15 CST sync, so his first sign-in was denied. The next sync added
+him, and a fresh sign-in was all he needed.
 
 Penpot's role names can't contain spaces, because `PENPOT_OIDC_ROLES` is
 split on whitespace. That's why this role is `jellify-member` rather than

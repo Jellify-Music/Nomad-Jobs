@@ -148,10 +148,9 @@ EOT
         # Only members of a Jellify-Music GitHub team get in: Keycloak's
         # `penpot` client puts realm roles in a `roles` claim, and the
         # github-team-sync job grants `jellify-member` to everyone on a
-        # synced team. The client's browser-penpot flow gates on the same
-        # role, but Keycloak doesn't re-run a client's browser flow after a
-        # GitHub (identity provider) login, so this is the check that
-        # actually holds for those logins.
+        # synced team. Keycloak gates on the same role first (the client's
+        # browser-penpot flow, and the github IdP's post-login flow); this
+        # is the backstop for every login path.
         PENPOT_OIDC_ROLES      = "jellify-member"
         PENPOT_OIDC_ROLES_ATTR = "roles"
 
