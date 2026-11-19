@@ -40,6 +40,7 @@ is the live-ish reference — see caveat below):
 |---|---|---|
 | `galileo.jellify.app` | macOS, arm64 (Apple Silicon Mac mini) | `container`+`podman` enabled; in the `github_runners` group (runs actions-runner) |
 | `hopper.jellify.app` | macOS, arm64 | `container` enabled; in the `github_runners` group (runs actions-runner) |
+| `lovelace.jellify.app` | macOS, arm64 | formerly `betelgeuse.cosmonautical.cloud`; `container` enabled; in the `github_runners` group |
 | `euler.jellify.app` | Ubuntu, amd64 | added for x86-only jobs; in the `game_servers` group (runs minecraft/valheim) |
 | `kepler.jellify.app` | Ubuntu, amd64 | same as euler |
 | `dijkstra.jellify.app` | Ubuntu, amd64 | added for x86-only jobs (e.g. bobby, which can land on any amd64 node) |
@@ -124,6 +125,33 @@ checking which host type it's actually constrained to — `bobby`'s
 normal-scale Ubuntu host, not examples of this quirk, and sizing a
 `galileo`/`hopper`-bound job the same way would ask for far more headroom
 than those hosts can actually fingerprint.
+
+## Apple `container` driver on the Macs
+
+Found while moving `penpot` and adding `github-team-sync` (2026-11-18):
+
+- **No task dirs inside the VM.** The driver mounts only `volumes` and
+  Nomad's volume mounts, not the task's `local/`/`secrets/`. A template
+  with `env = true` still works, because it becomes `-e` flags. A rendered
+  file doesn't, so pass scripts inline through `args`.
+- **Bind mounts write as the host user running Nomad** (`violet`, uid
+  1000), whatever uid the image runs as, so don't `chown` to the image's
+  uid. The Jellify NFS share is at `/Volumes/Jellify` on all three Macs, but
+  its root is 988:988 0755. A new top-level directory has to be created
+  from an Ubuntu node with `sudo install -d -o 1000 -g 20`.
+- **NFS bind mounts need TCC "Network Volumes" approval per host.** Without
+  it, `container-runtime-linux` waits on a GUI prompt nobody sees, and the
+  task hangs at "Starting container". See `penpot/README.md`'s one-time
+  setup. Check with `log show --predicate 'subsystem == "com.apple.TCC"'`
+  for `AUTHREQ_PROMPTING ... SystemPolicyNetworkVolumes`. Leftover
+  containers from killed runs block later starts, so clean them up.
+- **Each task is its own Linux VM.** `memory` covers the guest kernel too,
+  so 64 MiB won't boot. Use 256 MiB or more.
+- Containers can resolve `*.service.consul` and reach the LAN and the
+  internet. Tag+digest image refs (`name:tag@sha256:...`) pull fine.
+- `resources.cpu`: galileo/hopper/lovelace currently fingerprint ~35k CPU
+  shares each, so the "single-digit CPU" note below no longer applies to
+  them. Check `GET /v1/node/<id>` before sizing.
 
 ## Gotchas that carry over from the macOS side of the fleet
 
@@ -221,6 +249,16 @@ secrets. No `nomad` CLI on any host, so populate by hand via the HTTP API:
 Full writeup and the first real example:
 `~/Workspace/Cosmonautical/Nomad-Jobs/.agents/AGENTS.md`'s own copy of this
 section, and `Cosmonautical/Nomad-Jobs/romm`'s job spec/README.
+
+## SSO button label — always "Sign in with Cosmonautical"
+
+Any job here that uses Keycloak SSO (`auth.cosmonautical.cloud`, realm
+`cosmonautical`) should label its login button **"Sign in with
+Cosmonautical"**, not "Keycloak", "OIDC", or "OpenID". Use the exact text if
+the app takes a full label (`penpot`'s `PENPOT_OIDC_NAME`). If it only takes
+a provider name, use `Cosmonautical`. The full per-app table lives in
+`~/Workspace/Cosmonautical/Nomad-Jobs/.agents/AGENTS.md`'s section of the
+same name.
 
 ## Adding a new job — checklist
 
