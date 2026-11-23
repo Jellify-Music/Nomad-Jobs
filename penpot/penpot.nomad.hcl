@@ -138,7 +138,9 @@ EOT
       env {
         PENPOT_FLAGS = local.penpot_flags
 
-        PENPOT_DATABASE_USERNAME = "penpot"
+        PENPOT_DATABASE_USERNAME      = "penpot"
+        PENPOT_DATABASE_MAX_POOL_SIZE = "10"
+        PENPOT_DATABASE_MIN_POOL_SIZE = "2"
 
         PENPOT_OBJECTS_STORAGE_BACKEND      = "fs"
         PENPOT_OBJECTS_STORAGE_FS_DIRECTORY = "/opt/data/assets"
