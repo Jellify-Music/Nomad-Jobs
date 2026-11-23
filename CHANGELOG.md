@@ -28,6 +28,17 @@ Newest entries first, grouped by job.
 
 ## penpot
 
+### 2026-11-23
+
+- **Capped the backend's database pool at 10 (min 2).** Penpot's default
+  pool is 60 connections with `min-size` falling back to `max-size`
+  (`backend/src/app/db.clj`), so the backend held 60 connections open even
+  when idle. On the shared Patroni cluster (`max_connections = 100`, ~15
+  client apps) that left it at its limit, and new connections from any app
+  failed with `remaining connection slots are reserved for roles with the
+  SUPERUSER attribute`. Set via `PENPOT_DATABASE_MAX_POOL_SIZE` /
+  `PENPOT_DATABASE_MIN_POOL_SIZE`.
+
 ### 2026-11-19
 
 - **Fixed GitHub sign-in for everyone with `jellify-member`.** The `github`
