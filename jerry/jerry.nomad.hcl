@@ -28,7 +28,7 @@ EOF
       }
 
       config {
-        image = "ghcr.io/jellify-music/discord-bot@sha256:6728736eaa22284258ef514c050125fb24e470108904439608eba08e33f93995"
+        image = "ghcr.io/jellify-music/discord-bot@sha256:4188c4652a954f0a4c434607b5a96b5c8f41979af148a6098a0cd226c454404c"
 
       }
 
