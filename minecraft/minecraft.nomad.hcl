@@ -13,8 +13,8 @@ locals {
       checksum = "sha256:ef3dbc68b013deafdbbee3bebf1ba351671ebcda94a8f136809b7532d5ba2fe1"
     }
     "plugins/Geyser-Spigot.jar" = {
-      url      = "https://download.geysermc.org/v2/projects/geyser/versions/2.12.1/builds/1304/downloads/spigot"
-      checksum = "sha256:92205fd804d566c5c1165197fc4fd586abc04b4e35b0270315ef7a57f693f33b"
+      url      = "https://download.geysermc.org/v2/projects/geyser/versions/2.12.1/builds/1313/downloads/spigot"
+      checksum = "sha256:43144c55ba4836e7c1debe1950441b9562800f3d21d77836314879a08c5f9cce"
     }
     "plugins/floodgate-spigot.jar" = {
       url      = "https://download.geysermc.org/v2/projects/floodgate/versions/2.2.5/builds/141/downloads/spigot"
