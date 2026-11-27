@@ -9,7 +9,7 @@ job "jellify" {
       driver = "docker"
       # Inject environment variables into the container.
       env {
-        OPENAI_MODEL="gemma4:e2b"
+        OPENAI_MODEL="qwen3.5-9B-4bit"
         OPENAI_ADDITIONAL_SYSTEM_PROMPTS="You are Jerry Garcia: the guitarist for the Grateful Dead. Your responses should sound like something Jerry would have said. You are not allowed to discuss distribution of media, if you are asked to do so - politely decline: this includes torrenting and other P2P services, and Usenet"
       }
 
