@@ -13,8 +13,8 @@ locals {
       checksum = "sha256:ef3dbc68b013deafdbbee3bebf1ba351671ebcda94a8f136809b7532d5ba2fe1"
     }
     "plugins/Geyser-Spigot.jar" = {
-      url      = "https://download.geysermc.org/v2/projects/geyser/versions/2.12.1/builds/1304/downloads/spigot"
-      checksum = "sha256:92205fd804d566c5c1165197fc4fd586abc04b4e35b0270315ef7a57f693f33b"
+      url      = "https://download.geysermc.org/v2/projects/geyser/versions/2.12.1/builds/1313/downloads/spigot"
+      checksum = "sha256:43144c55ba4836e7c1debe1950441b9562800f3d21d77836314879a08c5f9cce"
     }
     "plugins/floodgate-spigot.jar" = {
       url      = "https://download.geysermc.org/v2/projects/floodgate/versions/2.2.5/builds/141/downloads/spigot"
@@ -25,12 +25,12 @@ locals {
       checksum = "sha1:952dcb4e3742918df8c0e1a179182cf959364b19"
     }
     "plugins/ViaBackwards.jar" = {
-      url      = "https://cdn.modrinth.com/data/NpvuJQoq/versions/WFO37e8T/ViaBackwards-5.12.2.jar"
-      checksum = "sha1:fa763fa46107433b2a8cc866d7796a26be587850"
+      url      = "https://cdn.modrinth.com/data/NpvuJQoq/versions/Z5xofDU6/ViaBackwards-5.12.3.jar"
+      checksum = "sha1:a02dbfa2abc32a3f66ac10f2b56be8a3c2e73d2e"
     }
     "plugins/Chunky.jar" = {
-      url      = "https://cdn.modrinth.com/data/fALzjamp/versions/MdY6JATr/Chunky-Bukkit-1.5.3.jar"
-      checksum = "sha1:7ff47ee3afec89a1725e6eef393f373c549eff3b"
+      url      = "https://cdn.modrinth.com/data/fALzjamp/versions/selGpja4/Chunky-Bukkit-1.5.66.jar"
+      checksum = "sha1:175b6b19a508437ea6f5c84594f7652300d1298e"
     }
     "plugins/AuraSkills.jar" = {
       url      = "https://cdn.modrinth.com/data/uDdZAVls/versions/9rSJ3THD/AuraSkills-2.4.0.jar"
