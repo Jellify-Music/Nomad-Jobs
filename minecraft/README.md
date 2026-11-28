@@ -30,7 +30,7 @@ a JDK bump means changing that package and this path together.
 | [Floodgate](https://geysermc.org/) | 2.2.5 build 141 (pinned) | Companion to Geyser — lets Bedrock players join as virtual accounts, no Java (Mojang) account required. |
 | [ViaBackwards](https://modrinth.com/plugin/viabackwards) | 5.12.2 (pinned) | Companion to ViaVersion — lets *older* Java clients connect the same way. |
 | [ViaVersion](https://modrinth.com/plugin/viaversion) | 5.12.2 (pinned) | Lets newer Java clients connect to the server's pinned Paper protocol version. |
-| [Chunky](https://modrinth.com/plugin/chunky) | 1.5.3 | World pre-generation, so terrain doesn't generate live under players walking near the edge of explored land. |
+| [Chunky](https://modrinth.com/plugin/chunky) | 1.5.66 | World pre-generation, so terrain doesn't generate live under players walking near the edge of explored land. |
 | [AuraSkills](https://modrinth.com/plugin/auraskills) | 2.4.0 | RPG skills/leveling. |
 | [BlueMap](https://modrinth.com/plugin/bluemap) | 5.29 (Paper build) | Live web map of the world, served at `minecraft.jellify.app`. |
 | [AutoTreeChop](https://modrinth.com/plugin/autotreechop) | 1.8.0 | Fells an entire tree from one log break and auto-replants the correct sapling, so chopped forest actually grows back instead of leaving permanent stumps/clear-cuts. |

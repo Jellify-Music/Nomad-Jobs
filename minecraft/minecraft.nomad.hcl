@@ -29,8 +29,8 @@ locals {
       checksum = "sha1:fa763fa46107433b2a8cc866d7796a26be587850"
     }
     "plugins/Chunky.jar" = {
-      url      = "https://cdn.modrinth.com/data/fALzjamp/versions/MdY6JATr/Chunky-Bukkit-1.5.3.jar"
-      checksum = "sha1:7ff47ee3afec89a1725e6eef393f373c549eff3b"
+      url      = "https://cdn.modrinth.com/data/fALzjamp/versions/selGpja4/Chunky-Bukkit-1.5.66.jar"
+      checksum = "sha1:175b6b19a508437ea6f5c84594f7652300d1298e"
     }
     "plugins/AuraSkills.jar" = {
       url      = "https://cdn.modrinth.com/data/uDdZAVls/versions/9rSJ3THD/AuraSkills-2.4.0.jar"
