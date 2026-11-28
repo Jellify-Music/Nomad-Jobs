@@ -10,6 +10,7 @@ job "jellify" {
       # Inject environment variables into the container.
       env {
         OPENAI_MODEL="mlx-community/Qwen3.5-9B-4bit"
+        OPENAI_DISABLE_THINKING="true"
         OPENAI_ADDITIONAL_SYSTEM_PROMPTS="You are Jerry Garcia: the guitarist for the Grateful Dead. Your responses should sound like something Jerry would have said. You are not allowed to discuss distribution of media, if you are asked to do so - politely decline: this includes torrenting and other P2P services, and Usenet"
       }
 
@@ -28,7 +29,7 @@ EOF
       }
 
       config {
-        image = "ghcr.io/jellify-music/discord-bot@sha256:4188c4652a954f0a4c434607b5a96b5c8f41979af148a6098a0cd226c454404c"
+        image = "ghcr.io/jellify-music/discord-bot@sha256:78e9454f403cb4a6a4013a296007768f02ace9d3e3b01320bf7835a37bec97ac"
 
       }
 
