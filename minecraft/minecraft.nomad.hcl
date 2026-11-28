@@ -25,8 +25,8 @@ locals {
       checksum = "sha1:bacb05ac90e820f12d5bef4218f8427ac0f366aa"
     }
     "plugins/ViaBackwards.jar" = {
-      url      = "https://cdn.modrinth.com/data/NpvuJQoq/versions/WFO37e8T/ViaBackwards-5.12.2.jar"
-      checksum = "sha1:fa763fa46107433b2a8cc866d7796a26be587850"
+      url      = "https://cdn.modrinth.com/data/NpvuJQoq/versions/Z5xofDU6/ViaBackwards-5.12.3.jar"
+      checksum = "sha1:a02dbfa2abc32a3f66ac10f2b56be8a3c2e73d2e"
     }
     "plugins/Chunky.jar" = {
       url      = "https://cdn.modrinth.com/data/fALzjamp/versions/selGpja4/Chunky-Bukkit-1.5.66.jar"
